@@ -99,6 +99,13 @@
         .btn-del { color: var(--danger); }
         .icon-btn:hover { transform: scale(1.2); }
 
+        /* Loading Overlay */
+        #loading-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); display: none; justify-content: center; 
+            align-items: center; z-index: 9999; 
+        }
+
         /* Modals */
         .modal-overlay { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); align-items: center; justify-content: center; }
         .modal-box { background: #11142b; padding: 35px; border-radius: 24px; border: 1.5px solid var(--accent); width: 450px; box-shadow: 0 0 40px rgba(188, 71, 255, 0.2); }
@@ -126,6 +133,8 @@
 </head>
 <body>
 
+    <div id="loading-overlay"><h2 style="color:var(--neon-blue)">SYNCING DATA...</h2></div>
+
     <div id="imgModal" class="modal-overlay" onclick="closeImgModal()" style="display: none;">
         <div>
             <img id="popupImg" src="">
@@ -147,7 +156,6 @@
                 <input type="number" id="editMargin" min="0" max="100" style="margin-bottom:0; text-align:center;" oninput="calcEditSale()">
             </div>
             <div style="margin-top:12px; position:relative;">
-                <label style="font-size: 10px; color: #948fb1; position: absolute; top: -15px; left: 5px;"></label>
                 <input type="text" id="editSale" readonly style="color:var(--neon-pink); font-weight:700; background: rgba(255, 71, 188, 0.05); border: 1px solid rgba(255, 71, 188, 0.2);">
             </div>
             <input type="text" id="editSerial" placeholder="Serial Number">
@@ -216,7 +224,7 @@
                     📸 <span id="fileTxt">Upload Product Image</span>
                     <input type="file" id="fileIn" hidden accept="image/*" onchange="handleFile(this)">
                 </div>
-                <button class="btn-update" onclick="addItem()">Update Stock</button>
+                <button class="btn-update" id="addBtn" onclick="addItem()">Update Stock</button>
             </div>
         </div>
 
@@ -240,18 +248,17 @@
     </div>
 
 <script>
-    let stock = JSON.parse(localStorage.getItem('SLI_STK')) || [];
+    const GS_URL = "https://script.google.com/macros/s/AKfycbzw_MASJvx-7U0zD1DOO6AcOZzYVGH5rA8jCv5oCa_zWInVq94qMRHLkWH-Nm3dMRqq/exec";
+
+    let stock = [];
     let cats = JSON.parse(localStorage.getItem('SLI_CATS')) || ["Processor", "Motherboard", "RAM", "Storage", "Monitor"];
     let dlrs = JSON.parse(localStorage.getItem('SLI_DLRS')) || ["SUNTRONIC SYSTEM", "GIRI COMPUTER"];
     let myChart, currentFilter = "All", searchQuery = "", fileBase64 = "";
-
-    const GS_URL = "https://script.google.com/macros/s/AKfycbzw_MASJvx-7U0zD1DOO6AcOZzYVGH5rA8jCv5oCa_zWInVq94qMRHLkWH-Nm3dMRqq/exec";
 
     function closeModal() { document.getElementById('reusableModal').style.display = 'none'; }
     function closeEdit() { document.getElementById('editModal').style.display = 'none'; }
     function closeImgModal() { document.getElementById('imgModal').style.display = 'none'; }
 
-    // Double Click Preview
     function openImgModal(src) {
         if(!src || src.includes('placeholder')) return;
         const modal = document.getElementById('imgModal');
@@ -260,12 +267,34 @@
         modal.style.display = 'flex';
     }
 
+    // --- Google Sheet Data Fetch ---
+    async function fetchFromGoogle() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+        try {
+            const response = await fetch(GS_URL);
+            const data = await response.json();
+            if (data && data.length > 0) {
+                stock = data.map(i => ({
+                    id: i.id, name: i.name, cat: i.category, dealer: i.dealer,
+                    buy: parseFloat(i.buy) || 0, margin: parseFloat(i.margin) || 5, 
+                    sell: parseFloat(i.sell) || 0, date: i.date, 
+                    serial: i.serial, img: i.image
+                }));
+                localStorage.setItem('SLI_STK', JSON.stringify(stock));
+            }
+        } catch (e) { 
+            console.error("Fetch Error", e); 
+            stock = JSON.parse(localStorage.getItem('SLI_STK')) || [];
+        }
+        document.getElementById('loading-overlay').style.display = 'none';
+        updateInterface();
+    }
+
     async function pushToGoogle(data) {
         try {
             await fetch(GS_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
         } catch (e) { console.error("GS Error", e); }
@@ -293,7 +322,6 @@
     }
 
     function syncDB() {
-        localStorage.setItem('SLI_STK', JSON.stringify(stock));
         localStorage.setItem('SLI_CATS', JSON.stringify(cats));
         localStorage.setItem('SLI_DLRS', JSON.stringify(dlrs));
         updateInterface();
@@ -318,25 +346,35 @@
         render();
     }
 
-    function setFilter(c) { currentFilter = c; updateInterface(); }
+    function setFilter(c) { currentFilter = c; render(); updateInterface(); }
     function handleSearch() { searchQuery = document.getElementById('searchInput').value.toLowerCase(); render(); }
 
-    function addItem() {
+    async function addItem() {
         const name = document.getElementById('pName').value;
         const buy = parseFloat(document.getElementById('pBuy').value) || 0;
         if(!name) return alert("পণ্যর নাম লিখুন");
+        
+        const btn = document.getElementById('addBtn');
+        btn.disabled = true; btn.innerText = "Saving...";
+
         const newItem = { 
-            id: Date.now(), name, cat: document.getElementById('pCat').value, dealer: document.getElementById('pDealer').value, 
-            buy, margin: 5, sell: buy * 1.05, date: document.getElementById('pDate').value || new Date().toISOString().split('T')[0], 
-            serial: document.getElementById('pSerial').value, img: document.getElementById('pImgUrl').value || fileBase64 || "" 
+            id: Date.now(), name, cat: document.getElementById('pCat').value, 
+            dealer: document.getElementById('pDealer').value, 
+            buy, margin: 5, sell: buy * 1.05, 
+            date: document.getElementById('pDate').value || new Date().toISOString().split('T')[0], 
+            serial: document.getElementById('pSerial').value, 
+            img: document.getElementById('pImgUrl').value || fileBase64 || "" 
         };
+
+        await pushToGoogle(newItem);
         stock.push(newItem);
-        pushToGoogle(newItem);
-        syncDB();
+        localStorage.setItem('SLI_STK', JSON.stringify(stock));
+        
         document.getElementById('pName').value = ""; document.getElementById('pBuy').value = ""; fileBase64 = "";
+        btn.disabled = false; btn.innerText = "Update Stock";
+        render();
     }
 
-    // Edit Modal Open Logic
     function openEdit(id) {
         const item = stock.find(s => s.id === id);
         if (!item) return;
@@ -345,7 +383,6 @@
         document.getElementById('editCat').value = item.cat;
         document.getElementById('editDlr').value = item.dealer;
         document.getElementById('editBuy').value = item.buy;
-        // Load saved margin or default to 10
         document.getElementById('editMargin').value = item.margin || 10;
         document.getElementById('editSerial').value = item.serial;
         document.getElementById('editDate').value = item.date;
@@ -354,19 +391,15 @@
         document.getElementById('editModal').style.display = 'flex';
     }
 
-    // Real-time Calculation
     function calcEditSale() {
         const buy = parseFloat(document.getElementById('editBuy').value) || 0;
         let margin = parseFloat(document.getElementById('editMargin').value) || 0;
-        if (margin > 100) { margin = 100; document.getElementById('editMargin').value = 100; }
         const sale = buy + (buy * margin / 100);
         document.getElementById('editSale').value = Math.round(sale);
     }
 
-    // Save Modified Data
-    function saveEdit() {
-        const idInput = document.getElementById('editId').value;
-        const id = parseInt(idInput);
+    async function saveEdit() {
+        const id = parseInt(document.getElementById('editId').value);
         const index = stock.findIndex(s => s.id === id);
         if (index === -1) return;
         
@@ -384,15 +417,18 @@
             date: document.getElementById('editDate').value,
             img: document.getElementById('editImg').value
         };
-        pushToGoogle(stock[index]);
-        syncDB();
+        
+        await pushToGoogle(stock[index]);
+        localStorage.setItem('SLI_STK', JSON.stringify(stock));
         closeEdit();
+        render();
     }
 
     function render() {
         const body = document.getElementById('tableBody'); body.innerHTML = '';
         let inv = 0;
-        const filtered = stock.filter(i => (currentFilter === 'All' || i.cat === currentFilter) && (i.name.toLowerCase().includes(searchQuery) || i.serial.toLowerCase().includes(searchQuery)));
+        const filtered = stock.filter(i => (currentFilter === 'All' || i.cat === currentFilter) && (i.name.toLowerCase().includes(searchQuery) || (i.serial && i.serial.toLowerCase().includes(searchQuery))));
+        
         filtered.forEach(i => {
             inv += i.buy;
             const imgSrc = i.img || 'https://via.placeholder.com/45';
@@ -408,7 +444,7 @@
                 <td><span class="price-tag">₹${i.buy}</span></td>
                 <td style="color:var(--neon-pink); font-weight:700">₹${Math.round(i.sell)}</td>
                 <td style="font-size:11px;">${i.date}</td>
-                <td style="font-family:monospace; color:var(--neon-blue)">${i.serial}</td>
+                <td style="font-family:monospace; color:var(--neon-blue)">${i.serial || 'N/A'}</td>
                 <td><div class="action-btns"><button class="icon-btn btn-edit" onclick="openEdit(${i.id})">✎</button><button class="icon-btn btn-del" onclick="triggerDelete(${i.id})">✖</button></div></td>
             </tr>`;
         });
@@ -417,7 +453,6 @@
         document.getElementById('tGst').innerText = '₹' + (inv * 0.18).toLocaleString();
         document.getElementById('tProfit').innerText = '₹' + (inv * 0.05).toLocaleString();
         
-        // Dynamic Chart Calculation
         const counts = {};
         stock.forEach(i => counts[i.cat] = (counts[i.cat] || 0) + 1);
         drawChart(counts);
@@ -428,14 +463,14 @@
         document.getElementById('modalInput').style.display = 'none';
         document.getElementById('modalTitle').innerText = "Confirm Delete";
         document.getElementById('modalDesc').innerText = "Are you sure you want to delete this product?";
-        confirmBtn.onclick = () => { stock = stock.filter(s => s.id !== id); syncDB(); closeModal(); };
+        confirmBtn.onclick = () => { stock = stock.filter(s => s.id !== id); localStorage.setItem('SLI_STK', JSON.stringify(stock)); render(); closeModal(); };
         document.getElementById('reusableModal').style.display = 'flex';
     }
 
     function drawChart(data) {
         const ctx = document.getElementById('roundChart').getContext('2d');
         if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, { type: 'polarArea', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#bc47ff', '#47e1ff', '#ff47bc', '#39ff14'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#948fb1' } } }, scales: { r: { display: false } } } });
+        myChart = new Chart(ctx, { type: 'polarArea', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#bc47ff', '#47e1ff', '#ff47bc', '#39ff14'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#948fb1', font: { size: 10 } } } }, scales: { r: { display: false } } } });
     }
 
     function exportToExcel() {
@@ -445,8 +480,8 @@
         XLSX.utils.book_append_sheet(wb, ws, "Inventory");
         XLSX.writeFile(wb, "StudioLine_Report.xlsx");
     }
-    updateInterface();
+
+    window.onload = fetchFromGoogle;
 </script>
 </body>
 </html>
-
