@@ -26,6 +26,70 @@
             cursor: pointer;
             font-size: 18px;
         }
+.btn-refresh {
+    background: var(--card-glass);
+    border: 1.5px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 10px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 11px;
+    transition: 0.3s;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-refresh:hover {
+    background: var(--neon-blue);
+    color: #0b0e1a;
+    box-shadow: 0 0 20px rgba(71, 225, 255, 0.4);
+    transform: translateY(-2px);
+}
+    #loading-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(11, 14, 26, 0.9); /* হালকা ট্রান্সপারেন্ট যাতে দ্রুত লোড ফিল হয় */
+        display: none; /* শুরুতে বন্ধ থাকবে */
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        backdrop-filter: blur(5px); /* হালকা ব্লার ইফেক্ট */
+        transition: opacity 0.2s ease-out; /* দ্রুত বন্ধ হওয়ার ইফেক্ট */
+    }
+
+    .loader-stylish { text-align: center; }
+
+    .spinner {
+        width: 45px; /* ছোট সাইজ দ্রুত লোডিং ফিল দেয় */
+        height: 45px;
+        border: 3px solid rgba(188, 71, 255, 0.1);
+        border-top: 3px solid #bc47ff;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite; /* এনিমেশন স্পিড ০.৬ সেকেন্ড করা হয়েছে (আগে ১ সেকেন্ড ছিল) */
+        margin: 0 auto 15px;
+    }
+
+    .loader-stylish h2 {
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 600;
+        font-family: 'Poppins', sans-serif;
+        opacity: 0.9;
+    }
+
+    .loader-stylish h2 span {
+        color: #47e1ff;
+        font-weight: 800;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg-dark); color: var(--text-white); display: flex; min-height: 100vh; overflow-x: hidden; }
@@ -110,7 +174,12 @@
 </head>
 <body>
 
-    <div id="loading-overlay"><h2 style="color: var(--neon-blue);">SYNCING DATA...</h2></div>
+<div id="loading-overlay">
+    <div>
+        <div class="spinner"></div>
+        <div style="text-align:center;color:#9aa0d0">Loading Data…</div>
+    </div>
+</div>
 
     <div id="imgModal" class="modal-overlay" onclick="closeImgModal()" style="display: none;">
         <div>
@@ -168,6 +237,7 @@
             <div class="search-box"><input type="text" id="searchInput" placeholder="Search product..." onkeyup="handleSearch()" list="productSuggestions"></div>
             <datalist id="productSuggestions"></datalist>
             <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
+<button class="btn-refresh" onclick="fetchFromGoogle()">Refresh Data</button>
         </div>
 
         <div class="stats-grid">
@@ -225,6 +295,19 @@
     </div>
 
 <script>
+// জাভাস্ক্রিপ্ট দিয়ে দ্রুত বন্ধ করার জন্য এই ট্রিকটি ব্যবহার করুন
+    function showLoader() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+    }
+
+    function hideLoader() {
+        const loader = document.getElementById('loading-overlay');
+        loader.style.opacity = '0';
+        setTimeout(() => {
+            loader.style.display = 'none';
+            loader.style.opacity = '1';
+        }, 20); // মাত্র ২০০ মিলিসেকেন্ডে গায়েব হয়ে যাবে
+    }
     // URL Configuration
     const URL_PERMANENT = "https://script.google.com/macros/s/AKfycbyreFXvejr6Z4-nGPMMfExpNfd8m5PxTyNa8Z9mt75O5TcYWK-qNRicR2BqIszuCsKU/exec";
     const URL_DELETE = "https://script.google.com/macros/s/AKfycbxwSxAC3hbHuXre36QkHRZUCactbF3m3tPRLryD8InYfxJEGny8MQHUte3EcAhxbeQW/exec";
