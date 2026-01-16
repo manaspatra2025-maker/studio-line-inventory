@@ -136,7 +136,9 @@
 
         .btn-update { width: 100%; background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px; font-size: 16px; }
 
-        .table-wrap { background: var(--card-glass); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        .table-wrap { background: var(--card-glass); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: visible; }
+.p-img-wrapper {position: relative;width: 45px;height: 45px;border-radius: 50%;overflow: hidden;z-index: 10;}
+.p-img {transition: all 0.35s ease;}
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 18px; text-align: left; font-size: 13px; }
         th { color: #948fb1; text-transform: uppercase; font-size: 11px; background: rgba(255,255,255,0.02); }
@@ -145,7 +147,7 @@
 
         .p-img-wrapper { position: relative; width: 45px; height: 45px; z-index: 10; display: inline-block; vertical-align: middle; }
         .p-img { width: 100%; height: 100%; border-radius: 4px; object-fit: cover; transition: transform 0.3s ease; cursor: pointer; position: absolute; top: 0; left: 0; }
-        .p-img-wrapper:hover .p-img { transform: scale(4.5); z-index: 999; border-radius: 0; box-shadow: 0 15px 40px rgba(0,0,0,0.9); }
+        .p-img-wrapper:hover .p-img { transform: scale(3.5); z-index: 999; border-radius: 0; box-shadow: 0 15px 40px rgba(0,0,0,0.9); }
 
         .price-tag { 
             color: transparent; 
@@ -295,6 +297,23 @@
     </div>
 
 <script>
+// এই ফাংশনটি তারিখকে 16-01-2026 06:45 PM ফরম্যাটে রূপান্তর করবে
+function formatDateTime(dateStr) {
+    if (!dateStr) return "N/A";
+    const date = new Date(dateStr);
+    if (isNaN(date)) return dateStr;
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    
+    return `${day}-${month}-${year} ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+}
 // জাভাস্ক্রিপ্ট দিয়ে দ্রুত বন্ধ করার জন্য এই ট্রিকটি ব্যবহার করুন
     function showLoader() {
         document.getElementById('loading-overlay').style.display = 'flex';
@@ -472,7 +491,7 @@
             dealer: document.getElementById('editDlr').value,
             buy, margin, sell,
             serial: document.getElementById('editSerial').value,
-            date: document.getElementById('editDate').value,
+            date: document.getElementById('pDate').value ? new Date(document.getElementById('pDate').value).toISOString() : new Date().toISOString(),
             img: document.getElementById('editImg').value
         };
         
@@ -502,7 +521,7 @@
                 <td style="font-size:11px; color:#948fb1">${i.dealer}</td>
                 <td><span class="price-tag">₹${i.buy}</span></td>
                 <td style="color:var(--neon-pink); font-weight:700">₹${Math.round(i.sell)}</td>
-                <td style="font-size:11px;">${i.date}</td>
+                <td style="font-size:11px; white-space:nowrap;">${formatDateTime(i.date)}</td>
                 <td style="font-family:monospace; color:var(--neon-blue)">${i.serial || 'N/A'}</td>
                 <td><div class="action-btns"><button class="icon-btn btn-edit" onclick="openEdit(${i.id})">✎</button><button class="icon-btn btn-del" onclick="triggerDelete(${i.id})">✖</button></div></td>
             </tr>`;
