@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Line India | Pro Inventory</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0b0e1a;
+            --sidebar-bg: #11142b;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --accent: #bc47ff;
+            --neon-blue: #47e1ff;
+            --neon-pink: #ff47bc;
+            --neon-green: #39ff14;
+            --text-white: #ffffff;
+            --danger: #ff5f5f;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) brightness(100%);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-dark); color: var(--text-white); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* Sidebar */
+        .sidebar { width: 280px; background: var(--sidebar-bg); padding: 25px; border-right: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .brand { font-size: 20px; font-weight: 800; color: var(--neon-blue); margin-bottom: 30px; text-transform: uppercase; }
+        .nav-link { padding: 12px 15px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; color: #948fb1; font-size: 13px; font-weight: 600; transition: 0.3s; list-style: none; text-transform: uppercase; }
+        .nav-link.active { background: var(--accent); color: white; box-shadow: 0 0 15px rgba(188, 71, 255, 0.4); }
+
+        /* Main View */
+        .main-container { flex: 1; padding: 30px; }
+        .header-top { display: flex; align-items: center; margin-bottom: 25px; gap: 20px; }
+        .search-box { position: relative; width: 350px; }
+        .search-box input { width: 100%; background: var(--card-glass); border: 1px solid rgba(255,255,255,0.1); padding: 12px 40px 12px 15px; border-radius: 12px; color: white; outline: none; }
+        .search-box::after { content: '🔍'; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: 0.7; }
+
+        .export-btn { margin-left: auto; background: transparent; border: 1.5px solid var(--neon-pink); color: var(--neon-pink); padding: 10px 25px; border-radius: 30px; cursor: pointer; font-weight: 600; transition: 0.3s; text-transform: uppercase; }
+        .export-btn:hover { background: var(--neon-pink); color: white; box-shadow: 0 0 20px rgba(255, 71, 188, 0.4); }
+
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
+        .stat-card { background: rgba(255, 255, 255, 0.03); padding: 25px 20px; border-radius: 15px; position: relative; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .stat-card::before { content: ""; position: absolute; left: 0; top: 10%; height: 80%; width: 4px; border-radius: 10px; }
+        .glow-blue::before { background: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
+        .glow-purple::before { background: var(--accent); box-shadow: 0 0 15px var(--accent); }
+        .glow-cyan::before { background: #00f2ff; box-shadow: 0 0 15px #00f2ff; }
+        .glow-green::before { background: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
+        .stat-card h3 { font-size: 11px; text-transform: uppercase; color: #948fb1; letter-spacing: 1px; }
+        .stat-card .val { font-size: 28px; font-weight: 800; margin-top: 10px; display: block; }
+
+        /* Forms & Table */
+        .mid-section { display: grid; grid-template-columns: 1fr 400px; gap: 25px; margin-bottom: 30px; }
+        .chart-box { background: var(--card-glass); padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .form-box { background: var(--card-glass); padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); }
+        
+        input, select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; color: white; margin-bottom: 12px; outline: none; }
+        
+        .control-group { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+        .control-group select { margin-bottom: 0; flex: 1; height: 45px; }
+        .btn-action { width: 45px; height: 45px; border-radius: 10px; border: none; font-weight: bold; font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .btn-plus { background: var(--neon-blue); color: #000; }
+        .btn-minus { background: var(--danger); color: #000; }
+
+        .btn-update { width: 100%; background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px; font-size: 16px; }
+
+        .table-wrap { background: var(--card-glass); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 18px; text-align: left; font-size: 13px; }
+        th { color: #948fb1; text-transform: uppercase; font-size: 11px; background: rgba(255,255,255,0.02); }
+        tr { border-bottom: 1px solid rgba(255,255,255,0.02); transition: 0.3s; }
+        tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+        .p-img-wrapper { position: relative; width: 45px; height: 45px; z-index: 10; display: inline-block; vertical-align: middle; }
+        .p-img { width: 100%; height: 100%; border-radius: 4px; object-fit: cover; transition: transform 0.3s ease; cursor: pointer; position: absolute; top: 0; left: 0; }
+        .p-img-wrapper:hover .p-img { transform: scale(4.5); z-index: 999; border-radius: 0; box-shadow: 0 15px 40px rgba(0,0,0,0.9); }
+
+        .price-tag { 
+            color: transparent; 
+            text-shadow: 0 0 8px rgba(255,255,255,0.5); 
+            transition: all 0.3s ease; 
+            cursor: pointer; 
+            user-select: none;
+            font-weight: 600;
+        }
+        .price-tag:hover { color: var(--neon-green); text-shadow: none; transform: scale(1.1); }
+
+        .action-btns { display: flex; gap: 10px; }
+        .icon-btn { background: none; border: none; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn-edit { color: var(--neon-blue); }
+        .btn-del { color: var(--danger); }
+        .icon-btn:hover { transform: scale(1.2); }
+
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); align-items: center; justify-content: center; }
+        .modal-box { background: #11142b; padding: 35px; border-radius: 24px; border: 1.5px solid var(--accent); width: 450px; box-shadow: 0 0 40px rgba(188, 71, 255, 0.2); }
+        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* Image Preview Popup */
+        #imgModal div {
+            max-width: 700px; 
+            max-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 10px;
+        }
+        #popupImg {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="imgModal" class="modal-overlay" onclick="closeImgModal()" style="display: none;">
+        <div>
+            <img id="popupImg" src="">
+        </div>
+    </div>
+
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 20px; color: var(--neon-blue);">STUDIO LINE INDIA<br><span style="color:#fff; font-size:14px;">PRODUCT UPDATE</span></h3>
+            <input type="hidden" id="editId">
+            <input type="text" id="editName" placeholder="Product Name">
+            <div class="edit-grid">
+                <select id="editCat"></select>
+                <select id="editDlr"></select>
+            </div>
+            <input type="number" id="editBuy" placeholder="Buy Price" oninput="calcEditSale()">
+            <div class="edit-grid" style="align-items: center;">
+                <div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); color:#948fb1; font-size:12px;">Percentage %</div>
+                <input type="number" id="editMargin" min="0" max="100" style="margin-bottom:0; text-align:center;" oninput="calcEditSale()">
+            </div>
+            <div style="margin-top:12px; position:relative;">
+                <label style="font-size: 10px; color: #948fb1; position: absolute; top: -15px; left: 5px;"></label>
+                <input type="text" id="editSale" readonly style="color:var(--neon-pink); font-weight:700; background: rgba(255, 71, 188, 0.05); border: 1px solid rgba(255, 71, 188, 0.2);">
+            </div>
+            <input type="text" id="editSerial" placeholder="Serial Number">
+            <input type="date" id="editDate">
+            <input type="text" id="editImg" placeholder="Image URL">
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="saveEdit()" style="flex:1; padding: 12px; border-radius: 12px; border: none; background: var(--accent); color: white; cursor: pointer; font-weight: 600;">UPDATE</button>
+                <button onclick="closeEdit()" style="flex:1; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #1e223d; color: white; cursor: pointer;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reusableModal" class="modal-overlay">
+        <div class="modal-box" style="text-align:center;">
+            <div id="modalIcon" style="font-size: 50px; margin-bottom: 10px;">⚠️</div>
+            <div id="modalTitle" style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">Confirm</div>
+            <p id="modalDesc" style="color: #948fb1;"></p>
+            <input type="text" id="modalInput" style="display: none; margin-top: 15px;" placeholder="Type here...">
+            <div style="display: flex; gap: 15px; margin-top: 20px;">
+                <button id="modalConfirmBtn" style="flex:1; padding: 12px; border-radius: 12px; border: none; background: var(--accent); color: white; cursor: pointer;">Confirm</button>
+                <button onclick="closeModal()" style="flex:1; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #1e223d; color: white; cursor: pointer;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="brand">STUDIO LINE INDIA</div>
+        <ul id="sidebarCats"></ul>
+    </div>
+
+    <div class="main-container">
+        <div class="header-top">
+            <div class="search-box"><input type="text" id="searchInput" placeholder="Search product..." onkeyup="handleSearch()" list="productSuggestions"></div>
+            <datalist id="productSuggestions"></datalist>
+            <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card glow-blue"><h3>Inventory Count</h3><div class="val" id="tQty">0</div></div>
+            <div class="stat-card glow-purple"><h3>Total Value</h3><div class="val" id="tInv">₹0</div></div>
+            <div class="stat-card glow-cyan"><h3>GST (18%)</h3><div class="val" id="tGst" style="color:var(--neon-blue)">₹0</div></div>
+            <div class="stat-card glow-green"><h3>Projected Profit</h3><div class="val" id="tProfit" style="color:var(--neon-green)">₹0</div></div>
+        </div>
+
+        <div class="mid-section">
+            <div class="chart-box"><canvas id="roundChart"></canvas></div>
+
+            <div class="form-box">
+                <h2>Add New Product</h2>
+                <input type="text" id="pName" placeholder="Product Name" list="productSuggestions">
+                <div class="control-group">
+                    <select id="pCat"></select>
+                    <button class="btn-action btn-plus" onclick="triggerActionModal('add', 'cat')">+</button>
+                    <button class="btn-action btn-minus" onclick="triggerActionModal('rem', 'cat')">−</button>
+                </div>
+                <div class="control-group">
+                    <select id="pDealer"></select>
+                    <button class="btn-action btn-plus" onclick="triggerActionModal('add', 'dlr')">+</button>
+                    <button class="btn-action btn-minus" onclick="triggerActionModal('rem', 'dlr')">−</button>
+                </div>
+                <input type="number" id="pBuy" placeholder="Buy Price">
+                <input type="text" id="pSerial" placeholder="Serial Number">
+                <input type="date" id="pDate">
+                <input type="text" id="pImgUrl" placeholder="Image URL (Optional)">
+                <div style="border: 2px dashed rgba(255,255,255,0.1); padding: 12px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 15px; font-size: 11px;" onclick="document.getElementById('fileIn').click()">
+                    📸 <span id="fileTxt">Upload Product Image</span>
+                    <input type="file" id="fileIn" hidden accept="image/*" onchange="handleFile(this)">
+                </div>
+                <button class="btn-update" onclick="addItem()">Update Stock</button>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Details</th>
+                        <th>Category</th>
+                        <th>Dealer</th>
+                        <th>Buy Price</th>
+                        <th>Sale Price</th>
+                        <th>Date</th>
+                        <th>Serial</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+    let stock = JSON.parse(localStorage.getItem('SLI_STK')) || [];
+    let cats = JSON.parse(localStorage.getItem('SLI_CATS')) || ["Processor", "Motherboard", "RAM", "Storage", "Monitor"];
+    let dlrs = JSON.parse(localStorage.getItem('SLI_DLRS')) || ["SUNTRONIC SYSTEM", "GIRI COMPUTER"];
+    let myChart, currentFilter = "All", searchQuery = "", fileBase64 = "";
+
+    const GS_URL = "https://script.google.com/macros/s/AKfycbyreFXvejr6Z4-nGPMMfExpNfd8m5PxTyNa8Z9mt75O5TcYWK-qNRicR2BqIszuCsKU/exec";
+
+    function closeModal() { document.getElementById('reusableModal').style.display = 'none'; }
+    function closeEdit() { document.getElementById('editModal').style.display = 'none'; }
+    function closeImgModal() { document.getElementById('imgModal').style.display = 'none'; }
+
+    // Double Click Preview
+    function openImgModal(src) {
+        if(!src || src.includes('placeholder')) return;
+        const modal = document.getElementById('imgModal');
+        const img = document.getElementById('popupImg');
+        img.src = src;
+        modal.style.display = 'flex';
+    }
+
+    async function pushToGoogle(data) {
+        try {
+            await fetch(GS_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        } catch (e) { console.error("GS Error", e); }
+    }
+
+    function triggerActionModal(action, type) {
+        const input = document.getElementById('modalInput');
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        const title = document.getElementById('modalTitle');
+        const desc = document.getElementById('modalDesc');
+        if(action === 'add') {
+            title.innerText = "Add " + (type === 'cat' ? "Category" : "Dealer");
+            desc.innerText = "Enter the name below:";
+            input.style.display = "block"; input.value = "";
+            confirmBtn.onclick = () => { if(input.value) { if(type === 'cat') cats.push(input.value); else dlrs.push(input.value); syncDB(); closeModal(); } };
+        } else {
+            const val = document.getElementById(type === 'cat' ? 'pCat' : 'pDealer').value;
+            if(!val) return;
+            title.innerText = "Confirm Remove";
+            desc.innerText = `Are you sure you want to remove "${val}"?`;
+            input.style.display = "none";
+            confirmBtn.onclick = () => { if(type === 'cat') cats = cats.filter(c => c !== val); else dlrs = dlrs.filter(d => d !== val); syncDB(); closeModal(); };
+        }
+        document.getElementById('reusableModal').style.display = 'flex';
+    }
+
+    function syncDB() {
+        localStorage.setItem('SLI_STK', JSON.stringify(stock));
+        localStorage.setItem('SLI_CATS', JSON.stringify(cats));
+        localStorage.setItem('SLI_DLRS', JSON.stringify(dlrs));
+        updateInterface();
+    }
+
+    function handleFile(input) {
+        const reader = new FileReader();
+        reader.onload = (e) => { fileBase64 = e.target.result; document.getElementById('fileTxt').innerText = "Loaded ✅"; };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    function updateInterface() {
+        document.getElementById('pCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('pDealer').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
+        document.getElementById('editCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('editDlr').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
+        const uniqueNames = [...new Set(stock.map(i => i.name))];
+        document.getElementById('productSuggestions').innerHTML = uniqueNames.map(n => `<option value="${n}">`).join('');
+        const sidebar = document.getElementById('sidebarCats');
+        sidebar.innerHTML = `<li class="nav-link ${currentFilter==='All'?'active':''}" onclick="setFilter('All')">Dashboard</li>` + 
+                            cats.map(c => `<li class="nav-link ${currentFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</li>`).join('');
+        render();
+    }
+
+    function setFilter(c) { currentFilter = c; updateInterface(); }
+    function handleSearch() { searchQuery = document.getElementById('searchInput').value.toLowerCase(); render(); }
+
+    function addItem() {
+        const name = document.getElementById('pName').value;
+        const buy = parseFloat(document.getElementById('pBuy').value) || 0;
+        if(!name) return alert("পণ্যর নাম লিখুন");
+        const newItem = { 
+            id: Date.now(), name, cat: document.getElementById('pCat').value, dealer: document.getElementById('pDealer').value, 
+            buy, margin: 5, sell: buy * 1.05, date: document.getElementById('pDate').value || new Date().toISOString().split('T')[0], 
+            serial: document.getElementById('pSerial').value, img: document.getElementById('pImgUrl').value || fileBase64 || "" 
+        };
+        stock.push(newItem);
+        pushToGoogle(newItem);
+        syncDB();
+        document.getElementById('pName').value = ""; document.getElementById('pBuy').value = ""; fileBase64 = "";
+    }
+
+    // Edit Modal Open Logic
+    function openEdit(id) {
+        const item = stock.find(s => s.id === id);
+        if (!item) return;
+        document.getElementById('editId').value = item.id;
+        document.getElementById('editName').value = item.name;
+        document.getElementById('editCat').value = item.cat;
+        document.getElementById('editDlr').value = item.dealer;
+        document.getElementById('editBuy').value = item.buy;
+        // Load saved margin or default to 10
+        document.getElementById('editMargin').value = item.margin || 10;
+        document.getElementById('editSerial').value = item.serial;
+        document.getElementById('editDate').value = item.date;
+        document.getElementById('editImg').value = item.img;
+        calcEditSale();
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    // Real-time Calculation
+    function calcEditSale() {
+        const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+        let margin = parseFloat(document.getElementById('editMargin').value) || 0;
+        if (margin > 100) { margin = 100; document.getElementById('editMargin').value = 100; }
+        const sale = buy + (buy * margin / 100);
+        document.getElementById('editSale').value = Math.round(sale);
+    }
+
+    // Save Modified Data
+    function saveEdit() {
+        const idInput = document.getElementById('editId').value;
+        const id = parseInt(idInput);
+        const index = stock.findIndex(s => s.id === id);
+        if (index === -1) return;
+        
+        const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+        const margin = parseFloat(document.getElementById('editMargin').value) || 0;
+        const sell = buy + (buy * margin / 100);
+
+        stock[index] = {
+            ...stock[index],
+            name: document.getElementById('editName').value,
+            cat: document.getElementById('editCat').value,
+            dealer: document.getElementById('editDlr').value,
+            buy, margin, sell,
+            serial: document.getElementById('editSerial').value,
+            date: document.getElementById('editDate').value,
+            img: document.getElementById('editImg').value
+        };
+        pushToGoogle(stock[index]);
+        syncDB();
+        closeEdit();
+    }
+
+    function render() {
+        const body = document.getElementById('tableBody'); body.innerHTML = '';
+        let inv = 0;
+        const filtered = stock.filter(i => (currentFilter === 'All' || i.cat === currentFilter) && (i.name.toLowerCase().includes(searchQuery) || i.serial.toLowerCase().includes(searchQuery)));
+        filtered.forEach(i => {
+            inv += i.buy;
+            const imgSrc = i.img || 'https://via.placeholder.com/45';
+            body.innerHTML += `<tr>
+                <td>
+                    <div class="p-img-wrapper">
+                        <img src="${imgSrc}" class="p-img" ondblclick="openImgModal('${imgSrc}')">
+                    </div>
+                    <span style="margin-left:15px; font-weight:600;">${i.name}</span>
+                </td>
+                <td><span style="color:var(--neon-blue); background:rgba(71,225,255,0.05); padding:4px 10px; border-radius:20px; font-size:11px;">${i.cat}</span></td>
+                <td style="font-size:11px; color:#948fb1">${i.dealer}</td>
+                <td><span class="price-tag">₹${i.buy}</span></td>
+                <td style="color:var(--neon-pink); font-weight:700">₹${Math.round(i.sell)}</td>
+                <td style="font-size:11px;">${i.date}</td>
+                <td style="font-family:monospace; color:var(--neon-blue)">${i.serial}</td>
+                <td><div class="action-btns"><button class="icon-btn btn-edit" onclick="openEdit(${i.id})">✎</button><button class="icon-btn btn-del" onclick="triggerDelete(${i.id})">✖</button></div></td>
+            </tr>`;
+        });
+        document.getElementById('tQty').innerText = stock.length;
+        document.getElementById('tInv').innerText = '₹' + inv.toLocaleString();
+        document.getElementById('tGst').innerText = '₹' + (inv * 0.18).toLocaleString();
+        document.getElementById('tProfit').innerText = '₹' + (inv * 0.05).toLocaleString();
+        
+        // Dynamic Chart Calculation
+        const counts = {};
+        stock.forEach(i => counts[i.cat] = (counts[i.cat] || 0) + 1);
+        drawChart(counts);
+    }
+
+    function triggerDelete(id) {
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        document.getElementById('modalInput').style.display = 'none';
+        document.getElementById('modalTitle').innerText = "Confirm Delete";
+        document.getElementById('modalDesc').innerText = "Are you sure you want to delete this product?";
+        confirmBtn.onclick = () => { stock = stock.filter(s => s.id !== id); syncDB(); closeModal(); };
+        document.getElementById('reusableModal').style.display = 'flex';
+    }
+
+    function drawChart(data) {
+        const ctx = document.getElementById('roundChart').getContext('2d');
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, { type: 'polarArea', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#bc47ff', '#47e1ff', '#ff47bc', '#39ff14'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#948fb1' } } }, scales: { r: { display: false } } } });
+    }
+
+    function exportToExcel() {
+        const data = stock.map(i => ({ ID: i.id, Name: i.name, Category: i.cat, Dealer: i.dealer, Buy: i.buy, Sale: i.sell, Date: i.date, Serial: i.serial }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Inventory");
+        XLSX.writeFile(wb, "StudioLine_Report.xlsx");
+    }
+    updateInterface();
+</script>
+</body>
+</html>
