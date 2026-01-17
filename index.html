@@ -541,7 +541,7 @@ function calcEditSale() {
     const finalImg = newImgUrl !== "" ? newImgUrl : stock[index].img;
 
     const updatedData = {
-        action: 'UPDATE', // এটি খুবই গুরুত্বপূর্ণ
+        action: 'UPDATE', // ব্যাকএন্ডে আপডেট কমান্ড পাঠানোর জন্য
         id: id,
         name: document.getElementById('editName').value,
         cat: document.getElementById('editCat').value,
@@ -554,10 +554,10 @@ function calcEditSale() {
         img: finalImg
     };
 
-    showLoader(); // লোডিং অ্যানিমেশন চালু
+    showLoader(); 
 
     try {
-        // URL_DELETE বা আপনার নির্দিষ্ট করা আপডেট URL-এ ডেটা পাঠানো
+        // গুগল শিটে আপডেট ডাটা পাঠানো
         await fetch(URL_DELETE, {
             method: 'POST',
             mode: 'no-cors',
@@ -565,17 +565,22 @@ function calcEditSale() {
             body: JSON.stringify(updatedData)
         });
 
-        // লোকাল স্টক আপডেট করা যাতে সাথে সাথে দেখা যায়
+        // লোকাল স্টক তৎক্ষণাৎ আপডেট করা
         stock[index] = updatedData;
-        
         closeEdit();
-        render(); // টেবিল রি-রেন্ডার করা
-        alert("Product Updated Successfully!");
+        render(); 
+
+        // ডাটাবেজে আপডেট সম্পূর্ণ হওয়ার জন্য সময় দিয়ে পুনরায় ডাটা ফেচ করা
+        // এতে রিফ্রেশ করলেও ডাটা আর আগের অবস্থায় ফিরবে না
+        setTimeout(async () => {
+            await fetchFromGoogle(); 
+            hideLoader(); 
+        }, 1500);
+
     } catch (e) {
         console.error("Update Error:", e);
         alert("Failed to sync with Google Sheets!");
-    } finally {
-        hideLoader(); // লোডিং অ্যানিমেশন বন্ধ
+        hideLoader();
     }
 }
 
@@ -653,6 +658,7 @@ function calcEditSale() {
 </script>
 </body>
 </html>
+
 
 
 
