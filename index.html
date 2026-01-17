@@ -457,7 +457,7 @@ function formatDateTime(dateStr) {
     document.getElementById('loading-overlay').style.display = 'flex';
 
     const newItem = { 
-        action: 'ADD', // গুগল স্ক্রিপ্টকে বোঝানোর জন্য অ্যাকশন যোগ করা হলো
+        action: 'ADD', // ব্যাকএন্ডে নতুন ডাটা হিসেবে চিহ্নিত করার জন্য
         id: Date.now(), 
         name: name, 
         cat: document.getElementById('pCat').value, 
@@ -471,8 +471,7 @@ function formatDateTime(dateStr) {
     };
 
     try {
-        // গুগল শিটে ডেটা পাঠানো
-        // এখানে শুধু একটি URL (URL_PERMANENT) ব্যবহার করা যথেষ্ট যদি ব্যাকএন্ড ঠিক থাকে
+        // গুগল শিটে ডাটা পাঠানো
         await pushToGoogle(URL_PERMANENT, newItem);
         
         // ফর্ম ক্লিয়ার করা
@@ -480,20 +479,20 @@ function formatDateTime(dateStr) {
         document.getElementById('pBuy').value = ""; 
         document.getElementById('pSerial').value = "";
         fileBase64 = "";
-        document.getElementById('fileTxt').innerText = "Upload Product Image";
+        if(document.getElementById('fileTxt')) document.getElementById('fileTxt').innerText = "Upload Product Image";
 
-        // ডেটা সেভ হওয়ার জন্য ২ সেকেন্ড সময় দিন এবং তারপর অটোমেটিক রিফ্রেশ করুন
+        // ডাটাবেজে সেভ হওয়ার জন্য সামান্য বিরতি দিয়ে সরাসরি শিট থেকে ডাটা আনা
+        // এতে রিফ্রেশ করলেও ডাটা হারাবে না
         setTimeout(async () => {
-            await fetchFromGoogle(); // গুগল শিট থেকে লেটেস্ট ডেটা আবার লোড করবে
+            await fetchFromGoogle(); // গুগল শিট থেকে একদম লেটেস্ট ডাটা লোড হবে
             btn.disabled = false; 
             btn.innerText = "Update Stock";
             document.getElementById('loading-overlay').style.display = 'none';
-            alert("Product Added & Synced Successfully!");
-        }, 2000);
+            render(); // টেবিল আপডেট করা
+        }, 1500);
 
     } catch (e) {
         console.error("Add Error:", e);
-        alert("গুগল শিটে ডেটা সেভ হতে সমস্যা হয়েছে!");
         btn.disabled = false;
         btn.innerText = "Update Stock";
         document.getElementById('loading-overlay').style.display = 'none';
@@ -654,5 +653,6 @@ function calcEditSale() {
 </script>
 </body>
 </html>
+
 
 
