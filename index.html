@@ -147,7 +147,7 @@
 
         .p-img-wrapper { position: relative; width: 45px; height: 45px; z-index: 10; display: inline-block; vertical-align: middle; }
         .p-img { width: 100%; height: 100%; border-radius: 4px; object-fit: cover; transition: transform 0.3s ease; cursor: pointer; position: absolute; top: 0; left: 0; }
-        .p-img-wrapper:hover .p-img { transform: scale(2.5); z-index: 999; border-radius: 0; box-shadow: 0 15px 40px rgba(0,0,0,0.9); }
+        .p-img-wrapper:hover .p-img { transform: scale(1.5); z-index: 999; border-radius: 0; box-shadow: 0 15px 40px rgba(0,0,0,0.9); }
 
         .price-tag { 
             color: transparent; 
@@ -190,31 +190,50 @@
     </div>
 
     <div id="editModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 style="margin-bottom: 20px; color: var(--neon-blue);">STUDIO LINE INDIA<br><span style="color:#fff; font-size:14px;">PRODUCT UPDATE</span></h3>
-            <input type="hidden" id="editId">
-            <input type="text" id="editName" placeholder="Product Name">
-            <div class="edit-grid">
-                <select id="editCat"></select>
-                <select id="editDlr"></select>
+    <div class="modal-box">
+        <h3 style="margin-bottom: 20px; color: var(--neon-blue); text-align: center;">
+            STUDIO LINE INDIA<br>
+            <span style="color:#fff; font-size:14px; opacity: 0.8;">PRODUCT UPDATE</span>
+        </h3>
+        
+        <input type="hidden" id="editId">
+        
+        <input type="text" id="editName" placeholder="Product Name">
+        
+        <div class="edit-grid">
+            <select id="editCat"></select>
+            <select id="editDlr"></select>
+        </div>
+        
+        <input type="number" id="editBuy" placeholder="Buy Price" oninput="calcEditSale()">
+        
+        <div style="margin-bottom: 12px;">
+            <label style="font-size: 15px; color: #948fb1; margin-bottom: 5px; display: block;">Total Profit Percentage %</label>
+            <input type="number" id="editMargin" min="0" max="100" placeholder="30" oninput="calcEditSale()">
+        </div>
+
+        <div class="edit-grid" style="margin-bottom: 15px;">
+            <div style="position: relative;">
+                <label style="font-size: 15px; color: #948fb1;">Profit Amount -</label>
+                <div id="displayProfit" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); color: var(--neon-green); font-weight: bold; text-align: center;">0/-</div>
             </div>
-            <input type="number" id="editBuy" placeholder="Buy Price" oninput="calcEditSale()">
-            <div class="edit-grid" style="align-items: center;">
-                <div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); color:#948fb1; font-size:12px;">Percentage %</div>
-                <input type="number" id="editMargin" min="0" max="100" style="margin-bottom:0; text-align:center;" oninput="calcEditSale()">
-            </div>
-            <div style="margin-top:12px; position:relative;">
-                <input type="text" id="editSale" readonly style="color:var(--neon-pink); font-weight:700; background: rgba(255, 71, 188, 0.05); border: 1px solid rgba(255, 71, 188, 0.2);">
-            </div>
-            <input type="text" id="editSerial" placeholder="Serial Number">
-            <input type="date" id="editDate">
-            <input type="text" id="editImg" placeholder="Image URL">
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button onclick="saveEdit()" style="flex:1; padding: 12px; border-radius: 12px; border: none; background: var(--accent); color: white; cursor: pointer; font-weight: 600;">UPDATE</button>
-                <button onclick="closeEdit()" style="flex:1; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #1e223d; color: white; cursor: pointer;">Cancel</button>
+            <div style="position: relative;">
+                <label style="font-size: 15px; color: #948fb1;">Total % Amount -</label>
+                <div id="displayTotal" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); color: var(--neon-green); font-weight: bold; text-align: center;">0/-</div>
             </div>
         </div>
+        
+        <input type="text" id="editSerial" placeholder="Serial Number">
+        <input type="date" id="editDate">
+        
+        <input type="text" id="editImg" placeholder="Image URL">
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="saveEdit()" style="flex:1; padding: 15px; border-radius: 12px; border: none; background: var(--accent); color: white; cursor: pointer; font-weight: 700; font-size: 14px;">UPDATE</button>
+            <button onclick="closeEdit()" style="flex:1; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #1e223d; color: white; cursor: pointer; font-weight: 600;">Cancel</button>
+        </div>
     </div>
+</div>
 
     <div id="reusableModal" class="modal-overlay">
         <div class="modal-box" style="text-align:center;">
@@ -468,39 +487,63 @@ function formatDateTime(dateStr) {
         document.getElementById('editModal').style.display = 'flex';
     }
 
-    function calcEditSale() {
-        const buy = parseFloat(document.getElementById('editBuy').value) || 0;
-        let margin = parseFloat(document.getElementById('editMargin').value) || 0;
-        const sale = buy + (buy * margin / 100);
-        document.getElementById('editSale').value = Math.round(sale);
-    }
+function calcEditSale() {
+    const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+    const margin = parseFloat(document.getElementById('editMargin').value) || 0;
+    
+    const profitAmount = (buy * margin / 100);
+    const totalAmount = buy + profitAmount;
+    
+    document.getElementById('displayProfit').innerText = Math.round(profitAmount) + "";
+    document.getElementById('displayTotal').innerText = Math.round(totalAmount) + "";
+}
 
     async function saveEdit() {
-        const id = parseInt(document.getElementById('editId').value);
-        const index = stock.findIndex(s => s.id === id);
-        if (index === -1) return;
-        
-        const buy = parseFloat(document.getElementById('editBuy').value) || 0;
-        const margin = parseFloat(document.getElementById('editMargin').value) || 0;
-        const sell = buy + (buy * margin / 100);
+    const id = parseInt(document.getElementById('editId').value);
+    const index = stock.findIndex(s => s.id === id);
+    if (index === -1) return;
+    
+    const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+    const margin = parseFloat(document.getElementById('editMargin').value) || 0;
+    const sell = buy + (buy * margin / 100);
 
-        stock[index] = {
-            ...stock[index],
-            name: document.getElementById('editName').value,
-            cat: document.getElementById('editCat').value,
-            dealer: document.getElementById('editDlr').value,
-            buy, margin, sell,
-            serial: document.getElementById('editSerial').value,
-            date: document.getElementById('pDate').value ? new Date(document.getElementById('pDate').value).toISOString() : new Date().toISOString(),
-            img: document.getElementById('editImg').value
-        };
+    // ইমেজ চেক করার লজিক: 
+    // যদি ইনপুট ফিল্ড ফাঁকা থাকে, তবে আগের ইমেজ (stock[index].img) ব্যবহার হবে
+    const newImgUrl = document.getElementById('editImg').value.trim();
+    const finalImg = newImgUrl !== "" ? newImgUrl : stock[index].img;
+
+    const updatedItem = {
+        action: 'UPDATE', // গুগল স্ক্রিপ্টে অ্যাকশন পাঠানোর জন্য
+        id: id,
+        name: document.getElementById('editName').value,
+        cat: document.getElementById('editCat').value,
+        dealer: document.getElementById('editDlr').value,
+        buy: buy,
+        margin: margin,
+        sell: sell,
+        serial: document.getElementById('editSerial').value,
+        date: document.getElementById('editDate').value,
+        img: finalImg // এখানে ফাইনাল ইমেজ সেট করা হলো
+    };
+
+    document.getElementById('loading-overlay').style.display = 'flex';
+    
+    try {
+        // গুগল শিটে ডেটা পাঠানো
+        await pushToGoogle(URL_DELETE, updatedItem);
         
-        document.getElementById('loading-overlay').style.display = 'flex';
-        await pushToGoogle(URL_DELETE, stock[index]);
-        document.getElementById('loading-overlay').style.display = 'none';
+        // লোকাল স্টক আপডেট
+        stock[index] = updatedItem;
+        
         closeEdit();
         render();
+    } catch (e) {
+        console.error("Update Error", e);
+        alert("Update failed! Please try again.");
+    } finally {
+        document.getElementById('loading-overlay').style.display = 'none';
     }
+}
 
     function render() {
         const body = document.getElementById('tableBody'); body.innerHTML = '';
@@ -576,4 +619,3 @@ function formatDateTime(dateStr) {
 </script>
 </body>
 </html>
-
