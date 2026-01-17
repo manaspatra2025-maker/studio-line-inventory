@@ -536,12 +536,12 @@ function calcEditSale() {
     const margin = parseFloat(document.getElementById('editMargin').value) || 0;
     const sell = buy + (buy * margin / 100);
 
-    // ইমেজ চেক লজিক: ইনপুট ফাঁকা থাকলে পুরনো ইমেজ ব্যবহার হবে
+    // ইমেজ চেক লজিক: ইনপুট ফাঁকা থাকলে আগের ইমেজ ব্যবহার হবে
     const newImgUrl = document.getElementById('editImg').value.trim();
-    const finalImg = newImgUrl !== "" ? newImgUrl : stock[index].img;
+    const finalImg = newImgUrl !== "" ? newImgUrl : stock[index].image; // এখানে .image হবে কারণ আপনার doGet-এ image আছে
 
     const updatedData = {
-        action: 'UPDATE', // ব্যাকএন্ডে আপডেট কমান্ড পাঠানোর জন্য
+        action: 'UPDATE', 
         id: id,
         name: document.getElementById('editName').value,
         cat: document.getElementById('editCat').value,
@@ -551,27 +551,26 @@ function calcEditSale() {
         sell: sell,
         serial: document.getElementById('editSerial').value,
         date: document.getElementById('editDate').value,
-        img: finalImg
+        img: finalImg // ব্যাকএন্ডে আমরা 'img' পাঠাচ্ছি
     };
 
     showLoader(); 
 
     try {
-        // গুগল শিটে আপডেট ডাটা পাঠানো
-        await fetch(URL_DELETE, {
+        // মনে রাখবেন আপনার URL_PERMANENT বা URL_DELETE যেন সঠিক Web App URL হয়
+        await fetch(URL_PERMANENT, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedData)
         });
 
-        // লোকাল স্টক তৎক্ষণাৎ আপডেট করা
-        stock[index] = updatedData;
+        // তৎক্ষণাৎ ইন্টারফেস আপডেট
+        stock[index] = { ...updatedData, image: finalImg }; 
         closeEdit();
         render(); 
 
-        // ডাটাবেজে আপডেট সম্পূর্ণ হওয়ার জন্য সময় দিয়ে পুনরায় ডাটা ফেচ করা
-        // এতে রিফ্রেশ করলেও ডাটা আর আগের অবস্থায় ফিরবে না
+        // ১.৫ সেকেন্ড পর গুগল শিট থেকে লেটেস্ট ডাটা রিফ্রেশ করা
         setTimeout(async () => {
             await fetchFromGoogle(); 
             hideLoader(); 
@@ -579,7 +578,7 @@ function calcEditSale() {
 
     } catch (e) {
         console.error("Update Error:", e);
-        alert("Failed to sync with Google Sheets!");
+        alert("গুগল শিটের সাথে যোগাযোগ করা যাচ্ছে না!");
         hideLoader();
     }
 }
@@ -658,6 +657,7 @@ function calcEditSale() {
 </script>
 </body>
 </html>
+
 
 
 
