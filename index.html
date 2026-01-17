@@ -445,7 +445,7 @@ function formatDateTime(dateStr) {
     function setFilter(c) { currentFilter = c; updateInterface(); }
     function handleSearch() { searchQuery = document.getElementById('searchInput').value.toLowerCase(); render(); }
 
-  async function addItem() {
+async function addItem() {
     const name = document.getElementById('pName').value;
     const buy = parseFloat(document.getElementById('pBuy').value) || 0;
     
@@ -457,7 +457,7 @@ function formatDateTime(dateStr) {
     document.getElementById('loading-overlay').style.display = 'flex';
 
     const newItem = { 
-        action: 'ADD', // এটি নিশ্চিত করবে যে এটি নতুন প্রোডাক্ট
+        action: 'ADD', // ব্যাকএন্ডে নতুন ডাটা হিসেবে চিহ্নিত করার জন্য
         id: Date.now(), 
         name: name, 
         cat: document.getElementById('pCat').value, 
@@ -471,32 +471,31 @@ function formatDateTime(dateStr) {
     };
 
     try {
-        // ডেটা পাঠানো
-        await fetch(URL_PERMANENT, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(newItem)
-        });
+        // গুগল শিটে ডাটা পাঠানো
+        await pushToGoogle(URL_PERMANENT, newItem);
         
-        // ইনপুট ফিল্ড ক্লিয়ার করা
+        // ফর্ম ক্লিয়ার করা
         document.getElementById('pName').value = ""; 
         document.getElementById('pBuy').value = ""; 
         document.getElementById('pSerial').value = "";
         fileBase64 = "";
+        if(document.getElementById('fileTxt')) document.getElementById('fileTxt').innerText = "Upload Product Image";
 
-        // ডাটাবেজ আপডেট হওয়ার সময় দিন
+        // ডাটাবেজে সেভ হওয়ার জন্য সামান্য বিরতি দিয়ে সরাসরি শিট থেকে ডাটা আনা
+        // এতে রিফ্রেশ করলেও ডাটা হারাবে না
         setTimeout(async () => {
-            await fetchFromGoogle(); 
+            await fetchFromGoogle(); // গুগল শিট থেকে একদম লেটেস্ট ডাটা লোড হবে
             btn.disabled = false; 
             btn.innerText = "Update Stock";
             document.getElementById('loading-overlay').style.display = 'none';
+            render(); // টেবিল আপডেট করা
         }, 1500);
 
     } catch (e) {
+        console.error("Add Error:", e);
         btn.disabled = false;
         btn.innerText = "Update Stock";
         document.getElementById('loading-overlay').style.display = 'none';
-        console.error(e);
     }
 }
 
@@ -654,6 +653,7 @@ function calcEditSale() {
 </script>
 </body>
 </html>
+
 
 
 
