@@ -526,62 +526,57 @@ function calcEditSale() {
     document.getElementById('displayTotal').innerText = Math.round(totalAmount) + "";
 }
 
-   async function saveEdit() {
-    const id = parseInt(document.getElementById('editId').value);
-    const index = stock.findIndex(s => s.id === id);
-    
-    if (index === -1) return;
+     async function saveEdit() {
+    const id = parseInt(document.getElementById('editId').value);
+    const index = stock.findIndex(s => s.id === id);
+    
+    if (index === -1) return;
 
-    const buy = parseFloat(document.getElementById('editBuy').value) || 0;
-    const margin = parseFloat(document.getElementById('editMargin').value) || 0;
-    const sell = buy + (buy * margin / 100);
+    const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+    const margin = parseFloat(document.getElementById('editMargin').value) || 0;
+    const sell = buy + (buy * margin / 100);
 
-    // ইমেজ চেক লজিক: ইনপুট ফাঁকা থাকলে পুরনো ইমেজ ব্যবহার হবে
-    const newImgUrl = document.getElementById('editImg').value.trim();
-    const finalImg = newImgUrl !== "" ? newImgUrl : stock[index].img;
+    // ইমেজ চেক লজিক: ইনপুট ফাঁকা থাকলে পুরনো ইমেজ ব্যবহার হবে
+    const newImgUrl = document.getElementById('editImg').value.trim();
+    const finalImg = newImgUrl !== "" ? newImgUrl : stock[index].img;
 
-    const updatedData = {
-        action: 'UPDATE', // ব্যাকএন্ডে আপডেট কমান্ড পাঠানোর জন্য
-        id: id,
-        name: document.getElementById('editName').value,
-        cat: document.getElementById('editCat').value,
-        dealer: document.getElementById('editDlr').value,
-        buy: buy,
-        margin: margin,
-        sell: sell,
-        serial: document.getElementById('editSerial').value,
-        date: document.getElementById('editDate').value,
-        img: finalImg
-    };
+    const updatedData = {
+        action: 'UPDATE', // এটি খুবই গুরুত্বপূর্ণ
+        id: id,
+        name: document.getElementById('editName').value,
+        cat: document.getElementById('editCat').value,
+        dealer: document.getElementById('editDlr').value,
+        buy: buy,
+        margin: margin,
+        sell: sell,
+        serial: document.getElementById('editSerial').value,
+        date: document.getElementById('editDate').value,
+        img: finalImg
+    };
 
-    showLoader(); 
+    showLoader(); // লোডিং অ্যানিমেশন চালু
 
-    try {
-        // গুগল শিটে আপডেট ডাটা পাঠানো
-        await fetch(URL_DELETE, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedData)
-        });
+    try {
+        // URL_DELETE বা আপনার নির্দিষ্ট করা আপডেট URL-এ ডেটা পাঠানো
+        await fetch(URL_DELETE, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        });
 
-        // লোকাল স্টক তৎক্ষণাৎ আপডেট করা
-        stock[index] = updatedData;
-        closeEdit();
-        render(); 
-
-        // ডাটাবেজে আপডেট সম্পূর্ণ হওয়ার জন্য সময় দিয়ে পুনরায় ডাটা ফেচ করা
-        // এতে রিফ্রেশ করলেও ডাটা আর আগের অবস্থায় ফিরবে না
-        setTimeout(async () => {
-            await fetchFromGoogle(); 
-            hideLoader(); 
-        }, 1500);
-
-    } catch (e) {
-        console.error("Update Error:", e);
-        alert("Failed to sync with Google Sheets!");
-        hideLoader();
-    }
+        // লোকাল স্টক আপডেট করা যাতে সাথে সাথে দেখা যায়
+        stock[index] = updatedData;
+        
+        closeEdit();
+        render(); // টেবিল রি-রেন্ডার করা
+        alert("Product Updated Successfully!");
+    } catch (e) {
+        console.error("Update Error:", e);
+        alert("Failed to sync with Google Sheets!");
+    } finally {
+        hideLoader(); // লোডিং অ্যানিমেশন বন্ধ
+    }
 }
 
     function render() {
@@ -658,6 +653,7 @@ function calcEditSale() {
 </script>
 </body>
 </html>
+
 
 
 
