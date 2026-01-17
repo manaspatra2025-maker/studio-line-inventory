@@ -26,81 +26,118 @@
             cursor: pointer;
             font-size: 18px;
         }
-.btn-refresh {
-    background: var(--card-glass);
-    border: 1.5px solid var(--neon-blue);
-    color: var(--neon-blue);
-    padding: 10px 25px;
-    border-radius: 30px;
+        .btn-refresh {
+            background: var(--card-glass);
+            border: 1.5px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 10px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 11px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-refresh:hover {
+            background: var(--neon-blue);
+            color: #0b0e1a;
+            box-shadow: 0 0 20px rgba(71, 225, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(11, 14, 26, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.2s ease-out;
+        }
+
+        .loader-stylish { text-align: center; }
+
+        .spinner {
+            width: 45px;
+            height: 45px;
+            border: 3px solid rgba(188, 71, 255, 0.1);
+            border-top: 3px solid #bc47ff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+.product-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover; /* ইমেজ যাতে চ্যাপ্টা না হয়ে যায় */
+    border-radius: 50%; /* পুরোপুরি গোল করার জন্য */
+    border: 2px solid rgba(255, 255, 255, 0.1); /* হালকা বর্ডার */
+    background: #1a1d33; /* ইমেজ লোড না হলে ব্যাকগ্রাউন্ড */
+}
+.img-modal {
+    display: none; /* শুরুতে লুকানো থাকবে */
+    position: fixed;
+    z-index: 2000; /* চার্ট বা টেবিলের উপরে থাকবে */
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(7, 9, 22, 0.9); /* হালকা অন্ধকার ব্যাকগ্রাউন্ড */
+    backdrop-filter: blur(10px); /* ব্যাকগ্রাউন্ড ঝাপসা করবে */
+    justify-content: center; /* মাঝখানে আনবে (Horizontal) */
+    align-items: center; /* মাঝখানে আনবে (Vertical) */
+}
+
+.img-modal-content {
+    position: relative;
+    max-width: 80%; /* স্ক্রিনের ৮০% পর্যন্ত বড় হবে */
+    max-height: 80%;
+    background: #11142b;
+    padding: 10px;
+    border-radius: 20px;
+    border: 2px solid #bc47ff; /* আপনার প্রিয় পার্পল নিয়ন বর্ডার */
+    box-shadow: 0 0 40px rgba(188, 71, 255, 0.4);
+    animation: zoomIn 0.3s ease-out;
+}
+
+.img-modal-content img {
+    max-width: 100%;
+    max-height: 75vh;
+    border-radius: 12px;
+    display: block;
+}
+
+.close-modal {
+    position: absolute;
+    top: -45px; right: 0;
+    color: white;
+    font-size: 35px;
     cursor: pointer;
-    font-weight: 700;
-    font-size: 11px;
-    transition: 0.3s;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
-.btn-refresh:hover {
-    background: var(--neon-blue);
-    color: #0b0e1a;
-    box-shadow: 0 0 20px rgba(71, 225, 255, 0.4);
-    transform: translateY(-2px);
+/* জুম ইন এনিমেশন */
+@keyframes zoomIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
-    #loading-overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(11, 14, 26, 0.9); /* হালকা ট্রান্সপারেন্ট যাতে দ্রুত লোড ফিল হয় */
-        display: none; /* শুরুতে বন্ধ থাকবে */
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        backdrop-filter: blur(5px); /* হালকা ব্লার ইফেক্ট */
-        transition: opacity 0.2s ease-out; /* দ্রুত বন্ধ হওয়ার ইফেক্ট */
-    }
-
-    .loader-stylish { text-align: center; }
-
-    .spinner {
-        width: 45px; /* ছোট সাইজ দ্রুত লোডিং ফিল দেয় */
-        height: 45px;
-        border: 3px solid rgba(188, 71, 255, 0.1);
-        border-top: 3px solid #bc47ff;
-        border-radius: 50%;
-        animation: spin 0.6s linear infinite; /* এনিমেশন স্পিড ০.৬ সেকেন্ড করা হয়েছে (আগে ১ সেকেন্ড ছিল) */
-        margin: 0 auto 15px;
-    }
-
-    .loader-stylish h2 {
-        color: #ffffff;
-        font-size: 16px;
-        font-weight: 600;
-        font-family: 'Poppins', sans-serif;
-        opacity: 0.9;
-    }
-
-    .loader-stylish h2 span {
-        color: #47e1ff;
-        font-weight: 800;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg-dark); color: var(--text-white); display: flex; min-height: 100vh; overflow-x: hidden; }
 
-        /* Sidebar */
         .sidebar { width: 280px; background: var(--sidebar-bg); padding: 25px; border-right: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
         .brand { font-size: 20px; font-weight: 800; color: var(--neon-blue); margin-bottom: 30px; text-transform: uppercase; }
         .nav-link { padding: 12px 15px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; color: #948fb1; font-size: 13px; font-weight: 600; transition: 0.3s; list-style: none; text-transform: uppercase; }
         .nav-link.active { background: var(--accent); color: white; box-shadow: 0 0 15px rgba(188, 71, 255, 0.4); }
 
-        /* Main View */
         .main-container { flex: 1; padding: 30px; }
         .header-top { display: flex; align-items: center; margin-bottom: 25px; gap: 20px; }
         .search-box { position: relative; width: 350px; }
@@ -110,7 +147,6 @@
         .export-btn { margin-left: auto; background: transparent; border: 1.5px solid var(--neon-pink); color: var(--neon-pink); padding: 10px 25px; border-radius: 30px; cursor: pointer; font-weight: 600; transition: 0.3s; text-transform: uppercase; }
         .export-btn:hover { background: var(--neon-pink); color: white; box-shadow: 0 0 20px rgba(255, 71, 188, 0.4); }
 
-        /* Stats Cards */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
         .stat-card { background: rgba(255, 255, 255, 0.03); padding: 25px 20px; border-radius: 15px; position: relative; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
         .stat-card::before { content: ""; position: absolute; left: 0; top: 10%; height: 80%; width: 4px; border-radius: 10px; }
@@ -121,7 +157,6 @@
         .stat-card h3 { font-size: 11px; text-transform: uppercase; color: #948fb1; letter-spacing: 1px; }
         .stat-card .val { font-size: 28px; font-weight: 800; margin-top: 10px; display: block; }
 
-        /* Forms & Table */
         .mid-section { display: grid; grid-template-columns: 1fr 400px; gap: 25px; margin-bottom: 30px; }
         .chart-box { background: var(--card-glass); padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .form-box { background: var(--card-glass); padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); }
@@ -137,8 +172,6 @@
         .btn-update { width: 100%; background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px; font-size: 16px; }
 
         .table-wrap { background: var(--card-glass); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: visible; }
-.p-img-wrapper {position: relative;width: 45px;height: 45px;border-radius: 50%;overflow: hidden;z-index: 10;}
-.p-img {transition: all 0.35s ease;}
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 18px; text-align: left; font-size: 13px; }
         th { color: #948fb1; text-transform: uppercase; font-size: 11px; background: rgba(255,255,255,0.02); }
@@ -149,85 +182,67 @@
         .p-img { width: 100%; height: 100%; border-radius: 4px; object-fit: cover; transition: transform 0.3s ease; cursor: pointer; position: absolute; top: 0; left: 0; }
         .p-img-wrapper:hover .p-img { transform: scale(1.5); z-index: 999; border-radius: 0; box-shadow: 0 15px 40px rgba(0,0,0,0.9); }
 
-        .price-tag { 
-            color: transparent; 
-            text-shadow: 0 0 8px rgba(255,255,255,0.5); 
-            transition: all 0.3s ease; 
-            cursor: pointer; 
-            user-select: none;
-            font-weight: 600;
-        }
+        .price-tag { color: transparent; text-shadow: 0 0 8px rgba(255,255,255,0.5); transition: all 0.3s ease; cursor: pointer; user-select: none; font-weight: 600; }
         .price-tag:hover { color: var(--neon-green); text-shadow: none; transform: scale(1.1); }
 
         .action-btns { display: flex; gap: 10px; }
         .icon-btn { background: none; border: none; cursor: pointer; font-size: 16px; transition: 0.2s; }
         .btn-edit { color: var(--neon-blue); }
         .btn-del { color: var(--danger); }
-        .icon-btn:hover { transform: scale(1.2); }
 
-        /* Loading Overlay */
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 9999; }
-
-        /* Modals */
         .modal-overlay { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); align-items: center; justify-content: center; }
         .modal-box { background: #11142b; padding: 35px; border-radius: 24px; border: 1.5px solid var(--accent); width: 450px; box-shadow: 0 0 40px rgba(188, 71, 255, 0.2); }
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     </style>
 </head>
 <body>
+<div id="imgModal" class="img-modal" onclick="closeImgModal()">
+    <div class="img-modal-content" onclick="event.stopPropagation()">
+        <span class="close-modal" onclick="closeImgModal()">&times;</span>
+        <img id="modalImg" src="" alt="Product Preview">
+    </div>
+</div>
 
 <div id="loading-overlay">
-    <div>
+    <div class="loader-stylish">
         <div class="spinner"></div>
         <div style="text-align:center;color:#9aa0d0">Loading Data…</div>
     </div>
 </div>
 
-    <div id="imgModal" class="modal-overlay" onclick="closeImgModal()" style="display: none;">
-        <div>
-            <img id="popupImg" src="" style="max-width: 90vw; max-height: 90vh; border-radius: 12px; border: 2px solid var(--accent);">
-        </div>
+<div id="imgModal" class="modal-overlay" onclick="closeImgModal()">
+    <div>
+        <img id="popupImg" src="" style="max-width: 90vw; max-height: 90vh; border-radius: 12px; border: 2px solid var(--accent);">
     </div>
+</div>
 
-    <div id="editModal" class="modal-overlay">
+<div id="editModal" class="modal-overlay">
     <div class="modal-box">
-        <h3 style="margin-bottom: 20px; color: var(--neon-blue); text-align: center;">
-            STUDIO LINE INDIA<br>
-            <span style="color:#fff; font-size:14px; opacity: 0.8;">PRODUCT UPDATE</span>
-        </h3>
-        
+        <h3 style="margin-bottom: 20px; color: var(--neon-blue); text-align: center;">STUDIO LINE INDIA<br><span style="color:#fff; font-size:14px; opacity: 0.8;">PRODUCT UPDATE</span></h3>
         <input type="hidden" id="editId">
-        
         <input type="text" id="editName" placeholder="Product Name">
-        
         <div class="edit-grid">
             <select id="editCat"></select>
             <select id="editDlr"></select>
         </div>
-        
         <input type="number" id="editBuy" placeholder="Buy Price" oninput="calcEditSale()">
-        
         <div style="margin-bottom: 12px;">
             <label style="font-size: 15px; color: #948fb1; margin-bottom: 5px; display: block;">Total Profit Percentage %</label>
             <input type="number" id="editMargin" min="0" max="100" placeholder="30" oninput="calcEditSale()">
         </div>
-
         <div class="edit-grid" style="margin-bottom: 15px;">
-            <div style="position: relative;">
+            <div>
                 <label style="font-size: 15px; color: #948fb1;">Profit Amount -</label>
-                <div id="displayProfit" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); color: var(--neon-green); font-weight: bold; text-align: center;">0/-</div>
+                <div id="displayProfit" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); color: var(--neon-green); font-weight: bold; text-align: center;">0</div>
             </div>
-            <div style="position: relative;">
+            <div>
                 <label style="font-size: 15px; color: #948fb1;">Total % Amount -</label>
                 <div id="displayTotal" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); color: var(--neon-green); font-weight: bold; text-align: center;">0/-</div>
             </div>
         </div>
-        
         <input type="text" id="editSerial" placeholder="Serial Number">
         <input type="date" id="editDate">
-        
         <input type="text" id="editImg" placeholder="Image URL">
-        
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <button onclick="saveEdit()" style="flex:1; padding: 15px; border-radius: 12px; border: none; background: var(--accent); color: white; cursor: pointer; font-weight: 700; font-size: 14px;">UPDATE</button>
             <button onclick="closeEdit()" style="flex:1; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #1e223d; color: white; cursor: pointer; font-weight: 600;">Cancel</button>
@@ -235,142 +250,122 @@
     </div>
 </div>
 
-    <div id="reusableModal" class="modal-overlay">
-        <div class="modal-box" style="text-align:center;">
-            <div id="modalIcon" style="font-size: 50px; margin-bottom: 10px;">⚠️</div>
-            <div id="modalTitle" style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">Confirm</div>
-            <p id="modalDesc" style="color: #948fb1;"></p>
-            <input type="text" id="modalInput" style="display: none; margin-top: 15px;" placeholder="Type here...">
-            <div style="display: flex; gap: 15px; margin-top: 20px;">
-                <button id="modalConfirmBtn" style="flex:1; padding: 12px; border-radius: 12px; border: none; background: var(--accent); color: white; cursor: pointer;">Confirm</button>
-                <button onclick="closeModal()" style="flex:1; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #1e223d; color: white; cursor: pointer;">Cancel</button>
+<div id="reusableModal" class="modal-overlay">
+    <div class="modal-box" style="text-align:center;">
+        <div id="modalIcon" style="font-size: 50px; margin-bottom: 10px;">⚠️</div>
+        <div id="modalTitle" style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">Confirm</div>
+        <p id="modalDesc" style="color: #948fb1;"></p>
+        <input type="text" id="modalInput" style="display: none; margin-top: 15px;" placeholder="Type here...">
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button id="modalConfirmBtn" style="flex:1; padding: 12px; border-radius: 12px; border: none; background: var(--accent); color: white; cursor: pointer;">Confirm</button>
+            <button onclick="closeModal()" style="flex:1; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #1e223d; color: white; cursor: pointer;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar">
+    <div class="brand">STUDIO LINE INDIA</div>
+    <ul id="sidebarCats"></ul>
+</div>
+
+<div class="main-container">
+    <div class="header-top">
+        <div class="search-box"><input type="text" id="searchInput" placeholder="Search product..." onkeyup="handleSearch()"></div>
+        <datalist id="productSuggestions"></datalist>
+        <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
+        <button class="btn-refresh" onclick="fetchFromGoogle()">Refresh Data</button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card glow-blue"><h3>Inventory Count</h3><div class="val" id="tQty">0</div></div>
+        <div class="stat-card glow-purple"><h3>Total Value</h3><div class="val" id="tInv">₹0</div></div>
+        <div class="stat-card glow-cyan"><h3>GST (18%)</h3><div class="val" id="tGst" style="color:var(--neon-blue)">₹0</div></div>
+        <div class="stat-card glow-green"><h3>Projected Profit</h3><div class="val" id="tProfit" style="color:var(--neon-green)">₹0</div></div>
+    </div>
+
+    <div class="mid-section">
+        <div class="chart-box"><canvas id="roundChart"></canvas></div>
+        <div class="form-box">
+            <h2>Add New Product</h2>
+           <input type="text" id="pName" placeholder="Product Name" list="productNameSuggestions" autocomplete="off">
+<datalist id="productNameSuggestions"></datalist>
+            <div class="control-group">
+                <select id="pCat"></select>
+                <button class="btn-action btn-plus" onclick="triggerActionModal('add', 'cat')">+</button>
+                <button class="btn-action btn-minus" onclick="triggerActionModal('rem', 'cat')">−</button>
             </div>
-        </div>
-    </div>
-
-    <div class="sidebar">
-        <div class="brand">STUDIO LINE INDIA</div>
-        <ul id="sidebarCats"></ul>
-    </div>
-
-    <div class="main-container">
-        <div class="header-top">
-            <div class="search-box"><input type="text" id="searchInput" placeholder="Search product..." onkeyup="handleSearch()" list="productSuggestions"></div>
-            <datalist id="productSuggestions"></datalist>
-            <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
-<button class="btn-refresh" onclick="fetchFromGoogle()">Refresh Data</button>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card glow-blue"><h3>Inventory Count</h3><div class="val" id="tQty">0</div></div>
-            <div class="stat-card glow-purple"><h3>Total Value</h3><div class="val" id="tInv">₹0</div></div>
-            <div class="stat-card glow-cyan"><h3>GST (18%)</h3><div class="val" id="tGst" style="color:var(--neon-blue)">₹0</div></div>
-            <div class="stat-card glow-green"><h3>Projected Profit</h3><div class="val" id="tProfit" style="color:var(--neon-green)">₹0</div></div>
-        </div>
-
-        <div class="mid-section">
-            <div class="chart-box"><canvas id="roundChart"></canvas></div>
-
-            <div class="form-box">
-                <h2>Add New Product</h2>
-                <input type="text" id="pName" placeholder="Product Name" list="productSuggestions">
-                <div class="control-group">
-                    <select id="pCat"></select>
-                    <button class="btn-action btn-plus" onclick="triggerActionModal('add', 'cat')">+</button>
-                    <button class="btn-action btn-minus" onclick="triggerActionModal('rem', 'cat')">−</button>
-                </div>
-                <div class="control-group">
-                    <select id="pDealer"></select>
-                    <button class="btn-action btn-plus" onclick="triggerActionModal('add', 'dlr')">+</button>
-                    <button class="btn-action btn-minus" onclick="triggerActionModal('rem', 'dlr')">−</button>
-                </div>
-                <input type="number" id="pBuy" placeholder="Buy Price">
-                <input type="text" id="pSerial" placeholder="Serial Number">
-                <input type="date" id="pDate">
-                <input type="text" id="pImgUrl" placeholder="Image URL (Optional)">
-                <div style="border: 2px dashed rgba(255,255,255,0.1); padding: 12px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 15px; font-size: 11px;" onclick="document.getElementById('fileIn').click()">
-                    📸 <span id="fileTxt">Upload Product Image</span>
-                    <input type="file" id="fileIn" hidden accept="image/*" onchange="handleFile(this)">
-                </div>
-                <button class="btn-update" id="addBtn" onclick="addItem()">Update Stock</button>
+            <div class="control-group">
+                <select id="pDealer"></select>
+                <button class="btn-action btn-plus" onclick="triggerActionModal('add', 'dlr')">+</button>
+                <button class="btn-action btn-minus" onclick="triggerActionModal('rem', 'dlr')">−</button>
             </div>
-        </div>
-
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Details</th>
-                        <th>Category</th>
-                        <th>Dealer</th>
-                        <th>Buy Price</th>
-                        <th>Sale Price</th>
-                        <th>Date</th>
-                        <th>Serial</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
+            <input type="number" id="pBuy" placeholder="Buy Price">
+            <input type="text" id="pSerial" placeholder="Serial Number">
+            <input type="date" id="pDate">
+            <input type="text" id="pImgUrl" placeholder="Image URL (Optional)">
+            <div style="border: 2px dashed rgba(255,255,255,0.1); padding: 12px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 15px; font-size: 11px;" onclick="document.getElementById('fileIn').click()">
+                📸 <span id="fileTxt">Upload Product Image</span>
+                <input type="file" id="fileIn" hidden accept="image/*" onchange="handleFile(this)">
+            </div>
+            <button class="btn-update" id="addBtn" onclick="addItem()">Update Stock</button>
         </div>
     </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Details</th>
+                    <th>Category</th>
+                    <th>Dealer</th>
+                    <th>Buy Price</th>
+                    <th>Sale Price</th>
+                    <th>Date</th>
+                    <th>Serial</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
 
 <script>
-// এই ফাংশনটি তারিখকে 16-01-2026 06:45 PM ফরম্যাটে রূপান্তর করবে
-function formatDateTime(dateStr) {
-    if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    if (isNaN(date)) return dateStr;
-
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    
-    let hours = date.getHours();
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    
-    return `${day}-${month}-${year} ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
-}
-// জাভাস্ক্রিপ্ট দিয়ে দ্রুত বন্ধ করার জন্য এই ট্রিকটি ব্যবহার করুন
-    function showLoader() {
-        document.getElementById('loading-overlay').style.display = 'flex';
-    }
-
-    function hideLoader() {
-        const loader = document.getElementById('loading-overlay');
-        loader.style.opacity = '0';
-        setTimeout(() => {
-            loader.style.display = 'none';
-            loader.style.opacity = '1';
-        }, 20); // মাত্র ২০০ মিলিসেকেন্ডে গায়েব হয়ে যাবে
-    }
-    // URL Configuration
     const URL_PERMANENT = "https://script.google.com/macros/s/AKfycbyreFXvejr6Z4-nGPMMfExpNfd8m5PxTyNa8Z9mt75O5TcYWK-qNRicR2BqIszuCsKU/exec";
     const URL_DELETE = "https://script.google.com/macros/s/AKfycbxwSxAC3hbHuXre36QkHRZUCactbF3m3tPRLryD8InYfxJEGny8MQHUte3EcAhxbeQW/exec";
 
     let stock = [];
-    const cats = ["PROCESSOR", "MOTHERBOARD", "RAM (DDR4 & DDR5)", "STORAGE (NVME & HDD)", "SMPS POWER SUPPLY", "CABINET (RGB & ARGB)", "GRAPHICS CARD", "MONITOR", "CPU COOLER", "KEYBOARD & MOUSE", "UPS (POWER SUPPLY)", "SOUND SYSTEM", "BT WIRELESS USB ADAPTERS", "RGB & ARGB FAN", "DP & HDMI CABLE"];
-    const dlrs = ["SUNTRONIC SYSTEM", "SUNTRONIC INFOTECH PVT. LTD.", "SUPREME INFOTRADE PVT LTD", "MANINDRA INFOTECH", "GIRI COMPUTER"];
+    let cats = ["PROCESSOR", "MOTHERBOARD", "RAM (DDR4 & DDR5)", "STORAGE (NVME & HDD)", "SMPS POWER SUPPLY", "CABINET (RGB & ARGB)", "GRAPHICS CARD", "MONITOR", "CPU COOLER", "KEYBOARD & MOUSE", "UPS (POWER SUPPLY)", "SOUND SYSTEM", "BT WIRELESS USB ADAPTERS", "RGB & ARGB FAN", "DP & HDMI CABLE"];
+    let dlrs = ["SUNTRONIC SYSTEM", "SUNTRONIC INFOTECH PVT. LTD.", "SUPREME INFOTRADE PVT LTD", "MANINDRA INFOTECH", "GIRI COMPUTER"];
 
     let myChart, currentFilter = "All", searchQuery = "", fileBase64 = "";
 
-    function closeModal() { document.getElementById('reusableModal').style.display = 'none'; }
-    function closeEdit() { document.getElementById('editModal').style.display = 'none'; }
-    function closeImgModal() { document.getElementById('imgModal').style.display = 'none'; }
-
-    function openImgModal(src) {
-        if(!src || src.includes('placeholder')) return;
-        document.getElementById('popupImg').src = src;
-        document.getElementById('imgModal').style.display = 'flex';
+    function formatDateTime(dateStr) {
+        if (!dateStr) return "N/A";
+        const date = new Date(dateStr);
+        if (isNaN(date)) return dateStr;
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        return `${day}-${month}-${year} ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
     }
 
-    // Fetch from Google on load
+    function showLoader() { document.getElementById('loading-overlay').style.display = 'flex'; }
+    function hideLoader() { 
+        const loader = document.getElementById('loading-overlay');
+        loader.style.opacity = '0';
+        setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 20);
+    }
+
     async function fetchFromGoogle() {
-        document.getElementById('loading-overlay').style.display = 'flex';
+        showLoader();
         try {
-            const response = await fetch(URL_DELETE);
+            const response = await fetch(URL_DELETE); 
+            if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             if (data && data.length > 0) {
                 stock = data.map(i => ({
@@ -380,124 +375,94 @@ function formatDateTime(dateStr) {
                     serial: i.serial, img: i.image
                 }));
             }
-        } catch (e) { console.error("Fetch Error", e); }
-        document.getElementById('loading-overlay').style.display = 'none';
+        } catch (e) { console.error("Fetch Error:", e); }
+        hideLoader();
         updateInterface();
     }
 
-    async function pushToGoogle(url, data) {
-        try {
-            await fetch(url, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-        } catch (e) { console.error("Sync Error", e); }
-    }
+    // Fixed Sync Logic (URL_DELETE for fetching/storing live data)
+    async function addItem() {
+        const name = document.getElementById('pName').value;
+        const buy = parseFloat(document.getElementById('pBuy').value) || 0;
+        if(!name) { alert("পণ্যর নাম লিখুন"); return; }
+        
+        showLoader();
+        const btn = document.getElementById('addBtn');
+        btn.disabled = true;
 
-    function triggerActionModal(action, type) {
-        const input = document.getElementById('modalInput');
-        const confirmBtn = document.getElementById('modalConfirmBtn');
-        const title = document.getElementById('modalTitle');
-        const desc = document.getElementById('modalDesc');
-        if(action === 'add') {
-            title.innerText = "Add " + (type === 'cat' ? "Category" : "Dealer");
-            desc.innerText = "Enter the name below:";
-            input.style.display = "block"; input.value = "";
-            confirmBtn.onclick = () => { if(input.value) { if(type === 'cat') cats.push(input.value); else dlrs.push(input.value); syncDB(); closeModal(); } };
-        } else {
-            const val = document.getElementById(type === 'cat' ? 'pCat' : 'pDealer').value;
-            if(!val) return;
-            title.innerText = "Confirm Remove";
-            desc.innerText = `Are you sure you want to remove "${val}"?`;
-            input.style.display = "none";
-            confirmBtn.onclick = () => { if(type === 'cat') cats = cats.filter(c => c !== val); else dlrs = dlrs.filter(d => d !== val); syncDB(); closeModal(); };
-        }
-        document.getElementById('reusableModal').style.display = 'flex';
-    }
-
-    function syncDB() {
-        localStorage.setItem('SLI_CATS', JSON.stringify(cats));
-        localStorage.setItem('SLI_DLRS', JSON.stringify(dlrs));
-        updateInterface();
-    }
-
-    function handleFile(input) {
-        const reader = new FileReader();
-        reader.onload = (e) => { fileBase64 = e.target.result; document.getElementById('fileTxt').innerText = "Loaded ✅"; };
-        reader.readAsDataURL(input.files[0]);
-    }
-
-    function updateInterface() {
-        document.getElementById('pCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('pDealer').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
-        document.getElementById('editCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('editDlr').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
-        const uniqueNames = [...new Set(stock.map(i => i.name))];
-        document.getElementById('productSuggestions').innerHTML = uniqueNames.map(n => `<option value="${n}">`).join('');
-        const sidebar = document.getElementById('sidebarCats');
-        sidebar.innerHTML = `<li class="nav-link ${currentFilter==='All'?'active':''}" onclick="setFilter('All')">Dashboard</li>` + 
-                            cats.map(c => `<li class="nav-link ${currentFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</li>`).join('');
-        render();
-    }
-
-    function setFilter(c) { currentFilter = c; updateInterface(); }
-    function handleSearch() { searchQuery = document.getElementById('searchInput').value.toLowerCase(); render(); }
-
-async function addItem() {
-    const name = document.getElementById('pName').value;
-    const buy = parseFloat(document.getElementById('pBuy').value) || 0;
-    
-    if(!name) return alert("পণ্যর নাম লিখুন");
-    
-    const btn = document.getElementById('addBtn');
-    btn.disabled = true; 
-    btn.innerText = "Saving...";
-    document.getElementById('loading-overlay').style.display = 'flex';
+        // --- বর্তমান সময় এবং তারিখ তৈরি করার লজিক ---
+    const now = new Date();
+    const dateVal = document.getElementById('pDate').value || now.toISOString().split('T')[0];
+    const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const fullDateTime = `${dateVal} ${timeString}`; // এটি "2026-01-17 08:30 PM" ফরম্যাট তৈরি করবে
 
     const newItem = { 
-        action: 'ADD', // ব্যাকএন্ডে নতুন ডাটা হিসেবে চিহ্নিত করার জন্য
+        action: 'ADD',
         id: Date.now(), 
-        name: name, 
+        name: name,
         cat: document.getElementById('pCat').value, 
         dealer: document.getElementById('pDealer').value, 
         buy: buy, 
         margin: 5, 
         sell: buy * 1.05, 
-        date: document.getElementById('pDate').value || new Date().toISOString().split('T')[0], 
-        serial: document.getElementById('pSerial').value, 
+        date: fullDateTime, // এখানে সঠিক সময় সেট হবে
+        serial: document.getElementById('pSerial').value || "", 
         img: document.getElementById('pImgUrl').value || fileBase64 || "" 
     };
 
-    try {
-        // গুগল শিটে ডাটা পাঠানো
-        await pushToGoogle(URL_PERMANENT, newItem);
-        
-        // ফর্ম ক্লিয়ার করা
-        document.getElementById('pName').value = ""; 
-        document.getElementById('pBuy').value = ""; 
+        try {
+            // Push to both for security
+            fetch(URL_PERMANENT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newItem) });
+            await fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newItem) });
+
+            document.getElementById('pName').value = ""; document.getElementById('pBuy').value = ""; fileBase64 = "";
+            
+
+document.getElementById('pName').value = ""; 
+        document.getElementById('pBuy').value = "";
         document.getElementById('pSerial').value = "";
-        fileBase64 = "";
-        if(document.getElementById('fileTxt')) document.getElementById('fileTxt').innerText = "Upload Product Image";
+        document.getElementById('pImgUrl').value = "";
+        document.getElementById('fileIn').value = ""; // ফাইল ইনপুট ক্লিয়ার
+        document.getElementById('fileTxt').innerText = "Upload Product Image"; // টেক্সট রিসেট
+        fileBase64 = ""; // ইমেজ ডাটা ক্লিয়ার
 
-        // ডাটাবেজে সেভ হওয়ার জন্য সামান্য বিরতি দিয়ে সরাসরি শিট থেকে ডাটা আনা
-        // এতে রিফ্রেশ করলেও ডাটা হারাবে না
-        setTimeout(async () => {
-            await fetchFromGoogle(); // গুগল শিট থেকে একদম লেটেস্ট ডাটা লোড হবে
-            btn.disabled = false; 
-            btn.innerText = "Update Stock";
-            document.getElementById('loading-overlay').style.display = 'none';
-            render(); // টেবিল আপডেট করা
-        }, 1500);
-
-    } catch (e) {
-        console.error("Add Error:", e);
-        btn.disabled = false;
-        btn.innerText = "Update Stock";
-        document.getElementById('loading-overlay').style.display = 'none';
+            // Wait 2 seconds for sheet to update before fetch
+            setTimeout(async () => {
+                await fetchFromGoogle();
+                btn.disabled = false;
+                hideLoader();
+            }, 2000);
+        } catch (e) { console.error(e); hideLoader(); btn.disabled = false; }
     }
-}
+
+    async function saveEdit() {
+        const id = parseInt(document.getElementById('editId').value);
+        const index = stock.findIndex(s => s.id === id);
+        const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+        const margin = parseFloat(document.getElementById('editMargin').value) || 0;
+
+        const updatedData = {
+            action: 'UPDATE', 
+            id: id, 
+            name: document.getElementById('editName').value,
+            cat: document.getElementById('editCat').value, 
+            dealer: document.getElementById('editDlr').value,
+            buy: buy, margin: margin, sell: buy + (buy * margin / 100),
+            serial: document.getElementById('editSerial').value, 
+            date: document.getElementById('editDate').value,
+            img: document.getElementById('editImg').value.trim() || stock[index].img
+        };
+
+        showLoader();
+        try {
+            // Delete old, wait, then add new via doPost action
+            await fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'DELETE', id: id }) });
+            await fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(updatedData) });
+            
+            closeEdit();
+            setTimeout(async () => { await fetchFromGoogle(); hideLoader(); }, 2000);
+        } catch (e) { console.error(e); hideLoader(); }
+    }
 
     function openEdit(id) {
         const item = stock.find(s => s.id === id);
@@ -509,160 +474,136 @@ async function addItem() {
         document.getElementById('editBuy').value = item.buy;
         document.getElementById('editMargin').value = item.margin || 5;
         document.getElementById('editSerial').value = item.serial;
-        document.getElementById('editDate').value = item.date;
+        document.getElementById('editDate').value = String(item.date).split('T')[0];
         document.getElementById('editImg').value = item.img;
         calcEditSale();
         document.getElementById('editModal').style.display = 'flex';
     }
 
-function calcEditSale() {
-    const buy = parseFloat(document.getElementById('editBuy').value) || 0;
-    const margin = parseFloat(document.getElementById('editMargin').value) || 0;
-    
-    const profitAmount = (buy * margin / 100);
-    const totalAmount = buy + profitAmount;
-    
-    document.getElementById('displayProfit').innerText = Math.round(profitAmount) + "";
-    document.getElementById('displayTotal').innerText = Math.round(totalAmount) + "";
-}
-
-    async function saveEdit() {
-    const id = parseInt(document.getElementById('editId').value);
-    const index = stock.findIndex(s => s.id === id);
-    
-    if (index === -1) return;
-
-    const buy = parseFloat(document.getElementById('editBuy').value) || 0;
-    const margin = parseFloat(document.getElementById('editMargin').value) || 0;
-    const sell = buy + (buy * margin / 100);
-
-    // ইমেজ চেক লজিক: ইনপুট ফাঁকা থাকলে আগের ইমেজ ব্যবহার হবে
-    const newImgUrl = document.getElementById('editImg').value.trim();
-    const finalImg = newImgUrl !== "" ? newImgUrl : stock[index].image; // এখানে .image হবে কারণ আপনার doGet-এ image আছে
-
-    const updatedData = {
-        action: 'UPDATE', 
-        id: id,
-        name: document.getElementById('editName').value,
-        cat: document.getElementById('editCat').value,
-        dealer: document.getElementById('editDlr').value,
-        buy: buy,
-        margin: margin,
-        sell: sell,
-        serial: document.getElementById('editSerial').value,
-        date: document.getElementById('editDate').value,
-        img: finalImg // ব্যাকএন্ডে আমরা 'img' পাঠাচ্ছি
-    };
-
-    showLoader(); 
-
-    try {
-        // মনে রাখবেন আপনার URL_PERMANENT বা URL_DELETE যেন সঠিক Web App URL হয়
-        await fetch(URL_PERMANENT, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedData)
-        });
-
-        // তৎক্ষণাৎ ইন্টারফেস আপডেট
-        stock[index] = { ...updatedData, image: finalImg }; 
-        closeEdit();
-        render(); 
-
-        // ১.৫ সেকেন্ড পর গুগল শিট থেকে লেটেস্ট ডাটা রিফ্রেশ করা
-        setTimeout(async () => {
-            await fetchFromGoogle(); 
-            hideLoader(); 
-        }, 1500);
-
-    } catch (e) {
-        console.error("Update Error:", e);
-        alert("গুগল শিটের সাথে যোগাযোগ করা যাচ্ছে না!");
-        hideLoader();
-    }
-}
-
-    function render() {
-        const body = document.getElementById('tableBody'); body.innerHTML = '';
-        let inv = 0;
-        const filtered = stock.filter(i => (currentFilter === 'All' || i.cat === currentFilter) && (i.name.toLowerCase().includes(searchQuery) || (i.serial && i.serial.toLowerCase().includes(searchQuery))));
-        
-        filtered.forEach(i => {
-            inv += i.buy;
-            const imgSrc = i.img || 'https://via.placeholder.com/45';
-            body.innerHTML += `<tr>
-                <td>
-                    <div class="p-img-wrapper">
-                        <img src="${imgSrc}" class="p-img" ondblclick="openImgModal('${imgSrc}')">
-                    </div>
-                    <span style="margin-left:15px; font-weight:600;">${i.name}</span>
-                </td>
-                <td><span style="color:var(--neon-blue); background:rgba(71,225,255,0.05); padding:4px 10px; border-radius:20px; font-size:11px;">${i.cat}</span></td>
-                <td style="font-size:11px; color:#948fb1">${i.dealer}</td>
-                <td><span class="price-tag">₹${i.buy}</span></td>
-                <td style="color:var(--neon-pink); font-weight:700">₹${Math.round(i.sell)}</td>
-                <td style="font-size:11px; white-space:nowrap;">${formatDateTime(i.date)}</td>
-                <td style="font-family:monospace; color:var(--neon-blue)">${i.serial || 'N/A'}</td>
-                <td><div class="action-btns"><button class="icon-btn btn-edit" onclick="openEdit(${i.id})">✎</button><button class="icon-btn btn-del" onclick="triggerDelete(${i.id})">✖</button></div></td>
-            </tr>`;
-        });
-        document.getElementById('tQty').innerText = stock.length;
-        document.getElementById('tInv').innerText = '₹' + inv.toLocaleString();
-        document.getElementById('tGst').innerText = '₹' + (inv * 0.18).toLocaleString();
-        document.getElementById('tProfit').innerText = '₹' + (inv * 0.05).toLocaleString();
-        
-        const counts = {};
-        stock.forEach(i => counts[i.cat] = (counts[i.cat] || 0) + 1);
-        drawChart(counts);
+    function calcEditSale() {
+        const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+        const margin = parseFloat(document.getElementById('editMargin').value) || 0;
+        const profit = (buy * margin / 100);
+        document.getElementById('displayProfit').innerText = Math.round(profit) + "";
+        document.getElementById('displayTotal').innerText = Math.round(buy + profit) + "";
     }
 
     async function triggerDelete(id) {
-        const confirmBtn = document.getElementById('modalConfirmBtn');
-        document.getElementById('modalTitle').innerText = "Confirm Delete";
+        const modal = document.getElementById('reusableModal');
         document.getElementById('modalDesc').innerText = "Are you sure? This will remove the item from the live sheet.";
-        
-        confirmBtn.onclick = async () => {
-            document.getElementById('loading-overlay').style.display = 'flex';
-            closeModal();
+        modal.style.display = 'flex';
+        document.getElementById('modalConfirmBtn').onclick = async () => {
+            showLoader(); closeModal();
             try {
-                await fetch(URL_DELETE, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify({ action: 'DELETE', id: id })
-                });
+                await fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'DELETE', id: id }) });
                 stock = stock.filter(s => s.id !== id);
                 render();
-            } catch (e) { console.error("Delete Error", e); }
-            document.getElementById('loading-overlay').style.display = 'none';
+            } catch (e) { console.error(e); }
+            hideLoader();
         };
-        document.getElementById('reusableModal').style.display = 'flex';
     }
 
-    function drawChart(data) {
+function render() {
+    const body = document.getElementById('tableBody'); body.innerHTML = '';
+    let inv = 0;
+    const filtered = stock.filter(i => (currentFilter === 'All' || i.cat === currentFilter) && (String(i.name).toLowerCase().includes(searchQuery.toLowerCase()) || String(i.serial).toLowerCase().includes(searchQuery.toLowerCase())));
+    
+    filtered.forEach(i => {
+        inv += (parseFloat(i.buy) || 0);
+        const imgSrc = i.img || 'https://via.placeholder.com/45';
+        
+        // ইমেজ স্টাইল করার জন্য p-img এবং p-img-wrapper ব্যবহার করা হয়েছে
+        body.innerHTML += `<tr>
+            <td>
+                <div class="p-img-wrapper" style="display:inline-block; vertical-align:middle;">
+                    <img src="${imgSrc}" 
+                         class="p-img" 
+                         style="width:50px; height:50px; border-radius:50%; object-fit:cover; border: 1px solid rgba(255,255,255,0.1);" 
+                         ondblclick="openImgModal('${imgSrc}')">
+                </div>
+                <span style="margin-left:15px; font-weight:600;">${i.name}</span>
+            </td>
+            <td><span style="color:var(--neon-blue); background:rgba(71,225,255,0.05); padding:4px 10px; border-radius:20px; font-size:11px;">${i.cat}</span></td>
+            <td style="font-size:11px; color:#948fb1">${i.dealer}</td>
+            <td><span class="price-tag">₹${i.buy}</span></td>
+            <td style="color:var(--neon-pink); font-weight:700">₹${Math.round(i.sell)}</td>
+            <td style="font-size:11px; white-space:nowrap;">${formatDateTime(i.date)}</td>
+            <td style="font-family:monospace; color:var(--neon-blue)">${i.serial || 'N/A'}</td>
+            <td><div class="action-btns"><button class="icon-btn btn-edit" onclick="openEdit(${i.id})">✎</button><button class="icon-btn btn-del" onclick="triggerDelete(${i.id})">✖</button></div></td>
+        </tr>`;
+    });
+
+    document.getElementById('tQty').innerText = filtered.length;
+    document.getElementById('tInv').innerText = '₹' + inv.toLocaleString();
+    document.getElementById('tGst').innerText = '₹' + (inv * 0.18).toLocaleString();
+    document.getElementById('tProfit').innerText = '₹' + (inv * 0.05).toLocaleString();
+    
+    const dataMap = {}; stock.forEach(i => dataMap[i.cat] = (dataMap[i.cat] || 0) + 1);
+    drawChart(dataMap);
+}
+
+function drawChart(data) {
         const ctx = document.getElementById('roundChart').getContext('2d');
         if(myChart) myChart.destroy();
         myChart = new Chart(ctx, { type: 'polarArea', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#bc47ff', '#47e1ff', '#ff47bc', '#39ff14'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#948fb1', font: { size: 10 } } } }, scales: { r: { display: false } } } });
     }
 
-    function exportToExcel() {
-        const data = stock.map(i => ({ ID: i.id, Name: i.name, Category: i.cat, Dealer: i.dealer, Buy: i.buy, Sale: i.sell, Date: i.date, Serial: i.serial }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Inventory");
-        XLSX.writeFile(wb, "StudioLine_Report.xlsx");
+    function updateInterface() {
+    // ১. আগের ক্যাটাগরি এবং ডিলার লোড করা (আপনার কোড)
+    document.getElementById('pCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    document.getElementById('pDealer').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
+    document.getElementById('editCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    document.getElementById('editDlr').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
+    
+    // ২. প্রোডাক্ট নামের সাজেশনের জন্য এই অংশটুকু নতুন যোগ করা হলো
+    const uniqueNames = [...new Set(stock.map(item => item.name))];
+    const dataList = document.getElementById('productNameSuggestions');
+    if (dataList) {
+        dataList.innerHTML = uniqueNames.map(name => `<option value="${name}">`).join('');
     }
+
+    const sidebar = document.getElementById('sidebarCats');
+    sidebar.innerHTML = `<li class="nav-link ${currentFilter==='All'?'active':''}" onclick="setFilter('All')">Dashboard</li>` + 
+                        cats.map(c => `<li class="nav-link ${currentFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</li>`).join('');
+    
+    render();
+}
+function openImgModal(src) {
+    const modal = document.getElementById('imgModal');
+    const modalImg = document.getElementById('modalImg');
+
+    // যদি ইমেজ না থাকে তবে ডিফল্ট ইমেজ দেখাবে
+    if (!src || src.includes('placeholder')) {
+        return; 
+    }
+
+    modal.style.display = "flex"; // ফ্লেক্স মোড ব্যবহার করে মাঝখানে আনা
+    modalImg.src = src;
+}
+
+function closeImgModal() {
+    document.getElementById('imgModal').style.display = "none";
+}
+
+    function triggerActionModal(action, type) {
+        const input = document.getElementById('modalInput');
+        if(action === 'add') {
+            document.getElementById('modalTitle').innerText = "Add Item";
+            input.style.display = "block"; input.value = "";
+            document.getElementById('modalConfirmBtn').onclick = () => { if(input.value) { if(type === 'cat') cats.push(input.value); else dlrs.push(input.value); updateInterface(); closeModal(); } };
+        }
+        document.getElementById('reusableModal').style.display = 'flex';
+    }
+
+    function handleFile(input) { const reader = new FileReader(); reader.onload = (e) => { fileBase64 = e.target.result; document.getElementById('fileTxt').innerText = "Loaded ✅"; }; reader.readAsDataURL(input.files[0]); }
+    function setFilter(c) { currentFilter = c; updateInterface(); }
+    function handleSearch() { searchQuery = document.getElementById('searchInput').value; render(); }
+    function closeModal() { document.getElementById('reusableModal').style.display = 'none'; }
+    function closeEdit() { document.getElementById('editModal').style.display = 'none'; }
+    function closeImgModal() { document.getElementById('imgModal').style.display = 'none'; }
+    function exportToExcel() { const data = stock.map(i => ({ ID: i.id, Name: i.name, Category: i.cat, Dealer: i.dealer, Buy: i.buy, Sale: i.sell, Date: i.date, Serial: i.serial })); const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Inventory"); XLSX.writeFile(wb, "Report.xlsx"); }
 
     window.onload = fetchFromGoogle;
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
