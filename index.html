@@ -445,31 +445,60 @@ function formatDateTime(dateStr) {
     function setFilter(c) { currentFilter = c; updateInterface(); }
     function handleSearch() { searchQuery = document.getElementById('searchInput').value.toLowerCase(); render(); }
 
-    async function addItem() {
-        const name = document.getElementById('pName').value;
-        const buy = parseFloat(document.getElementById('pBuy').value) || 0;
-        if(!name) return alert("পণ্যর নাম লিখুন");
-        
-        const btn = document.getElementById('addBtn');
-        btn.disabled = true; btn.innerText = "Saving...";
-        document.getElementById('loading-overlay').style.display = 'flex';
+  async function addItem() {
+    const name = document.getElementById('pName').value;
+    const buy = parseFloat(document.getElementById('pBuy').value) || 0;
+    
+    if(!name) return alert("পণ্যর নাম লিখুন");
+    
+    const btn = document.getElementById('addBtn');
+    btn.disabled = true; 
+    btn.innerText = "Saving...";
+    document.getElementById('loading-overlay').style.display = 'flex';
 
-        const newItem = { 
-            id: Date.now(), name, cat: document.getElementById('pCat').value, dealer: document.getElementById('pDealer').value, 
-            buy, margin: 5, sell: buy * 1.05, date: document.getElementById('pDate').value || new Date().toISOString().split('T')[0], 
-            serial: document.getElementById('pSerial').value, img: document.getElementById('pImgUrl').value || fileBase64 || "" 
-        };
+    const newItem = { 
+        action: 'ADD', // গুগল স্ক্রিপ্টকে বোঝানোর জন্য অ্যাকশন যোগ করা হলো
+        id: Date.now(), 
+        name: name, 
+        cat: document.getElementById('pCat').value, 
+        dealer: document.getElementById('pDealer').value, 
+        buy: buy, 
+        margin: 5, 
+        sell: buy * 1.05, 
+        date: document.getElementById('pDate').value || new Date().toISOString().split('T')[0], 
+        serial: document.getElementById('pSerial').value, 
+        img: document.getElementById('pImgUrl').value || fileBase64 || "" 
+    };
 
-        // Two-way Push
+    try {
+        // গুগল শিটে ডেটা পাঠানো
+        // এখানে শুধু একটি URL (URL_PERMANENT) ব্যবহার করা যথেষ্ট যদি ব্যাকএন্ড ঠিক থাকে
         await pushToGoogle(URL_PERMANENT, newItem);
-        await pushToGoogle(URL_DELETE, newItem);
+        
+        // ফর্ম ক্লিয়ার করা
+        document.getElementById('pName').value = ""; 
+        document.getElementById('pBuy').value = ""; 
+        document.getElementById('pSerial').value = "";
+        fileBase64 = "";
+        document.getElementById('fileTxt').innerText = "Upload Product Image";
 
-        stock.push(newItem);
-        document.getElementById('pName').value = ""; document.getElementById('pBuy').value = ""; fileBase64 = "";
-        btn.disabled = false; btn.innerText = "Update Stock";
+        // ডেটা সেভ হওয়ার জন্য ২ সেকেন্ড সময় দিন এবং তারপর অটোমেটিক রিফ্রেশ করুন
+        setTimeout(async () => {
+            await fetchFromGoogle(); // গুগল শিট থেকে লেটেস্ট ডেটা আবার লোড করবে
+            btn.disabled = false; 
+            btn.innerText = "Update Stock";
+            document.getElementById('loading-overlay').style.display = 'none';
+            alert("Product Added & Synced Successfully!");
+        }, 2000);
+
+    } catch (e) {
+        console.error("Add Error:", e);
+        alert("গুগল শিটে ডেটা সেভ হতে সমস্যা হয়েছে!");
+        btn.disabled = false;
+        btn.innerText = "Update Stock";
         document.getElementById('loading-overlay').style.display = 'none';
-        render();
     }
+}
 
     function openEdit(id) {
         const item = stock.find(s => s.id === id);
@@ -625,4 +654,5 @@ function calcEditSale() {
 </script>
 </body>
 </html>
+
 
