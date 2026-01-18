@@ -10,8 +10,7 @@
     <head>
     <title>Studio Line India | Pro Inventory</title>
     <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=4DkF7Aqa5SO4&format=png&color=000000">
-</head>
-    
+</head> 
     <style>
         :root {
             --bg-dark: #0b0e1a;
@@ -87,8 +86,15 @@
     height: 40px;
     object-fit: cover; /* ইমেজ যাতে চ্যাপ্টা না হয়ে যায় */
     border-radius: 50%; /* পুরোপুরি গোল করার জন্য */
-    border: 2px solid rgba(255, 255, 255, 0.1); /* হালকা বর্ডার */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* হালকা বর্ডার */
     background: #1a1d33; /* ইমেজ লোড না হলে ব্যাকগ্রাউন্ড */
+}
+/* মাউস হোভার করলে যা হবে */
+.product-img:hover {
+    transform: scale(1.75); /* ইমেজটি ২৫% বড় হবে */
+    border-color: var(--accent); /* হোভার করলে বর্ডার কালার আপনার থিমের পার্পল হবে */
+    box-shadow: 0 0 15px rgba(188, 71, 255, 0.4); /* হালকা গ্লো ইফেক্ট */
+    z-index: 100; /* যাতে অন্য সেলের নিচে চাপা না পড়ে */
 }
 .img-modal {
     display: none; /* শুরুতে লুকানো থাকবে */
@@ -318,17 +324,17 @@
     <div class="table-wrap">
         <table>
             <thead>
-                <tr>
-                    <th>Details</th>
-                    <th>Category</th>
-                    <th>Dealer</th>
-                    <th>Buy Price</th>
-                    <th>Sale Price</th>
-                    <th>Date</th>
-                    <th>Serial</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+    <tr>
+        <th>Details</th>
+        <th>Category</th>
+        <th>Dealer</th>
+        <th>Buy Price</th>
+        <th>Sale Price</th>
+        <th style="color: #948fb1;">HSN CODE</th> <th>Date</th>
+        <th>Serial</th>
+        <th>Action</th>
+    </tr>
+</thead>
             <tbody id="tableBody"></tbody>
         </table>
     </div>
@@ -365,11 +371,11 @@
         setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 20);
     }
 
+    // ডাটা রিলোড করার জন্য
     async function fetchFromGoogle() {
         showLoader();
         try {
             const response = await fetch(URL_DELETE); 
-            if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             if (data && data.length > 0) {
                 stock = data.map(i => ({
@@ -384,89 +390,176 @@
         updateInterface();
     }
 
-    // Fixed Sync Logic (URL_DELETE for fetching/storing live data)
+    // ১. ১০ গুণ দ্রুত পণ্য যোগ করার ফাংশন
     async function addItem() {
         const name = document.getElementById('pName').value;
         const buy = parseFloat(document.getElementById('pBuy').value) || 0;
         if(!name) { alert("পণ্যর নাম লিখুন"); return; }
         
-        showLoader();
-        const btn = document.getElementById('addBtn');
-        btn.disabled = true;
+        const now = new Date();
+        const dateVal = document.getElementById('pDate').value || now.toISOString().split('T')[0];
+        const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const fullDateTime = `${dateVal} ${timeString}`;
 
-        // --- বর্তমান সময় এবং তারিখ তৈরি করার লজিক ---
-    const now = new Date();
-    const dateVal = document.getElementById('pDate').value || now.toISOString().split('T')[0];
-    const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    const fullDateTime = `${dateVal} ${timeString}`; // এটি "2026-01-17 08:30 PM" ফরম্যাট তৈরি করবে
+        const newItem = { 
+            action: 'ADD',
+            id: Date.now(), 
+            name: name,
+            cat: document.getElementById('pCat').value, 
+            dealer: document.getElementById('pDealer').value, 
+            buy: buy, margin: 5, sell: buy * 1.05, 
+            date: fullDateTime, 
+            serial: document.getElementById('pSerial').value || "", 
+            img: document.getElementById('pImgUrl').value || fileBase64 || "" 
+        };
 
-    const newItem = { 
-        action: 'ADD',
-        id: Date.now(), 
-        name: name,
-        cat: document.getElementById('pCat').value, 
-        dealer: document.getElementById('pDealer').value, 
+        // --- FAST UPDATE ---
+        stock.unshift(newItem); // সার্ভারের আগে লোকাল লিস্টে অ্যাড
+        render(); // সাথে সাথে টেবিল আপডেট
+        resetForm(); // ফর্ম ক্লিয়ার
+
+        // ব্যাকগ্রাউন্ডে সেভ (ইউজারকে ওয়েট করাবে না)
+        try {
+            fetch(URL_PERMANENT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newItem) });
+            fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newItem) });
+        } catch (e) { console.error("Background Save Error:", e); }
+    }
+
+    // ২. ১০ গুণ দ্রুত এডিট সেভ করার ফাংশন
+    async function saveEdit() {
+    const id = parseInt(document.getElementById('editId').value);
+    const index = stock.findIndex(s => s.id === id);
+    if (index === -1) return; // প্রোডাক্ট খুঁজে না পেলে ফিরে যাবে
+
+    const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+    const margin = parseFloat(document.getElementById('editMargin').value) || 0;
+
+    const updatedData = {
+        action: 'UPDATE', 
+        id: id, 
+        name: document.getElementById('editName').value,
+        cat: document.getElementById('editCat').value, 
+        dealer: document.getElementById('editDlr').value,
         buy: buy, 
-        margin: 5, 
-        sell: buy * 1.05, 
-        date: fullDateTime, // এখানে সঠিক সময় সেট হবে
-        serial: document.getElementById('pSerial').value || "", 
-        img: document.getElementById('pImgUrl').value || fileBase64 || "" 
+        margin: margin, 
+        sell: buy + (buy * margin / 100),
+        serial: document.getElementById('editSerial').value, 
+        // ডেট পরিবর্তন না করে আগের অরিজিনাল ডেটটি রাখা হলো
+        date: stock[index].date, 
+        img: document.getElementById('editImg').value.trim() || stock[index].img
     };
 
+    // --- FAST UPDATE: লোকাল ডাটা সাথে সাথে আপডেট ---
+    stock[index] = updatedData;
+    render();
+    closeEdit();
+
+    // ব্যাকগ্রাউন্ডে গুগল শিটে সেভ (ইউজারকে ওয়েট করাবে না)
+    try {
+        // পুরনো ডাটা ডিলিট এবং নতুন ডাটা অ্যাড করার রিকোয়েস্ট
+        fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'DELETE', id: id }) });
+        fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(updatedData) });
+    } catch (e) { 
+        console.error("Update Error:", e); 
+    }
+}
+
+    // ৩. ১০ গুণ দ্রুত ডিলিট করার ফাংশন
+    async function triggerDelete(id) {
+        if(!confirm("Are you sure? This will remove the item instantly.")) return;
+        
+        // --- FAST UPDATE ---
+        stock = stock.filter(s => s.id !== id);
+        render();
+
+        // ব্যাকগ্রাউন্ডে ডিলিট
         try {
-            // Push to both for security
-            fetch(URL_PERMANENT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newItem) });
-            await fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newItem) });
+            fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'DELETE', id: id }) });
+        } catch (e) { console.error(e); }
+    }
 
-            document.getElementById('pName').value = ""; document.getElementById('pBuy').value = ""; fileBase64 = "";
-            
-
-document.getElementById('pName').value = ""; 
+    function resetForm() {
+        document.getElementById('pName').value = ""; 
         document.getElementById('pBuy').value = "";
         document.getElementById('pSerial').value = "";
         document.getElementById('pImgUrl').value = "";
-        document.getElementById('fileIn').value = ""; // ফাইল ইনপুট ক্লিয়ার
-        document.getElementById('fileTxt').innerText = "Upload Product Image"; // টেক্সট রিসেট
-        fileBase64 = ""; // ইমেজ ডাটা ক্লিয়ার
-
-            // Wait 2 seconds for sheet to update before fetch
-            setTimeout(async () => {
-                await fetchFromGoogle();
-                btn.disabled = false;
-                hideLoader();
-            }, 2000);
-        } catch (e) { console.error(e); hideLoader(); btn.disabled = false; }
+        document.getElementById('fileIn').value = "";
+        document.getElementById('fileTxt').innerText = "Upload Product Image";
+        fileBase64 = "";
     }
 
-    async function saveEdit() {
-        const id = parseInt(document.getElementById('editId').value);
-        const index = stock.findIndex(s => s.id === id);
-        const buy = parseFloat(document.getElementById('editBuy').value) || 0;
-        const margin = parseFloat(document.getElementById('editMargin').value) || 0;
+    function render() {
+    const body = document.getElementById('tableBody'); body.innerHTML = '';
+    let inv = 0;
+    const filtered = stock.filter(i => (currentFilter === 'All' || i.cat === currentFilter) && (String(i.name).toLowerCase().includes(searchQuery.toLowerCase()) || String(i.serial).toLowerCase().includes(searchQuery.toLowerCase())));
+    
+    filtered.forEach(i => {
+        inv += (parseFloat(i.buy) || 0);
+        const imgSrc = i.img || 'https://via.placeholder.com/45';
+        
+        // ১. আগে প্রফিট ক্যালকুলেট করে নিচ্ছি
+        const profitAmount = (parseFloat(i.sell) || 0) - (parseFloat(i.buy) || 0);
 
-        const updatedData = {
-            action: 'UPDATE', 
-            id: id, 
-            name: document.getElementById('editName').value,
-            cat: document.getElementById('editCat').value, 
-            dealer: document.getElementById('editDlr').value,
-            buy: buy, margin: margin, sell: buy + (buy * margin / 100),
-            serial: document.getElementById('editSerial').value, 
-            date: document.getElementById('editDate').value,
-            img: document.getElementById('editImg').value.trim() || stock[index].img
-        };
-
-        showLoader();
-        try {
-            // Delete old, wait, then add new via doPost action
-            await fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'DELETE', id: id }) });
-            await fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(updatedData) });
+        body.innerHTML += `<tr>
+            <td>
+                <div class="p-img-wrapper">
+                    <img src="${imgSrc}" class="product-img" ondblclick="openImgModal('${imgSrc}')">
+                </div>
+                <span style="margin-left:15px; font-weight:600;">${i.name}</span>
+            </td>
+            <td><span style="color:var(--neon-blue); background:rgba(71,225,255,0.05); padding:4px 10px; border-radius:20px; font-size:11px;">${i.cat}</span></td>
+            <td style="font-size:11px; color:#948fb1">${i.dealer}</td>
+            <td><span class="price-tag">₹${i.buy}</span></td>
+            <td style="color:var(--neon-pink); font-weight:700">₹${Math.round(i.sell)}</td>
             
-            closeEdit();
-            setTimeout(async () => { await fetchFromGoogle(); hideLoader(); }, 2000);
-        } catch (e) { console.error(e); hideLoader(); }
+            <td style="color: #948fb1; font-weight: 400; font-size: 13px;">NP ${Math.round(profitAmount)}</td>
+            
+            <td style="font-size:11px; white-space:nowrap;">${formatDateTime(i.date)}</td>
+            <td style="font-family:monospace; color:var(--neon-blue)">${i.serial || 'N/A'}</td>
+            <td><div class="action-btns"><button class="icon-btn btn-edit" onclick="openEdit(${i.id})">✎</button><button class="icon-btn btn-del" onclick="triggerDelete(${i.id})">✖</button></div></td>
+        </tr>`;
+    });
+
+        document.getElementById('tQty').innerText = filtered.length;
+        document.getElementById('tInv').innerText = '₹' + inv.toLocaleString();
+        document.getElementById('tGst').innerText = '₹' + (inv * 0.18).toLocaleString();
+        document.getElementById('tProfit').innerText = '₹' + (inv * 0.05).toLocaleString();
+        
+        const dataMap = {}; stock.forEach(i => dataMap[i.cat] = (dataMap[i.cat] || 0) + 1);
+        drawChart(dataMap);
     }
+
+    function drawChart(data) {
+        const ctx = document.getElementById('roundChart').getContext('2d');
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, { type: 'polarArea', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#bc47ff', '#47e1ff', '#ff47bc', '#39ff14'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#948fb1', font: { size: 10 } } } }, scales: { r: { display: false } } } });
+    }
+
+    function updateInterface() {
+        document.getElementById('pCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('pDealer').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
+        document.getElementById('editCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('editDlr').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
+        
+        const uniqueNames = [...new Set(stock.map(item => item.name))];
+        const dataList = document.getElementById('productNameSuggestions');
+        if (dataList) dataList.innerHTML = uniqueNames.map(name => `<option value="${name}">`).join('');
+
+        const sidebar = document.getElementById('sidebarCats');
+        sidebar.innerHTML = `<li class="nav-link ${currentFilter==='All'?'active':''}" onclick="setFilter('All')">Dashboard</li>` + 
+                            cats.map(c => `<li class="nav-link ${currentFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</li>`).join('');
+        render();
+    }
+
+    function openImgModal(src) {
+        const modal = document.getElementById('imgModal');
+        const modalImg = document.getElementById('modalImg');
+        if (!src || src.includes('placeholder')) return; 
+        modal.style.display = "flex";
+        modalImg.src = src;
+    }
+
+    function closeImgModal() { document.getElementById('imgModal').style.display = "none"; }
 
     function openEdit(id) {
         const item = stock.find(s => s.id === id);
@@ -479,7 +572,7 @@ document.getElementById('pName').value = "";
         document.getElementById('editMargin').value = item.margin || 5;
         document.getElementById('editSerial').value = item.serial;
         document.getElementById('editDate').value = String(item.date).split('T')[0];
-        document.getElementById('editImg').value = item.img;
+        document.getElementById('editImg').value = item.img || "";
         calcEditSale();
         document.getElementById('editModal').style.display = 'flex';
     }
@@ -492,125 +585,42 @@ document.getElementById('pName').value = "";
         document.getElementById('displayTotal').innerText = Math.round(buy + profit) + "";
     }
 
-    async function triggerDelete(id) {
-        const modal = document.getElementById('reusableModal');
-        document.getElementById('modalDesc').innerText = "Are you sure? This will remove the item from the live sheet.";
-        modal.style.display = 'flex';
-        document.getElementById('modalConfirmBtn').onclick = async () => {
-            showLoader(); closeModal();
-            try {
-                await fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'DELETE', id: id }) });
-                stock = stock.filter(s => s.id !== id);
-                render();
-            } catch (e) { console.error(e); }
-            hideLoader();
-        };
-    }
-
-function render() {
-    const body = document.getElementById('tableBody'); body.innerHTML = '';
-    let inv = 0;
-    const filtered = stock.filter(i => (currentFilter === 'All' || i.cat === currentFilter) && (String(i.name).toLowerCase().includes(searchQuery.toLowerCase()) || String(i.serial).toLowerCase().includes(searchQuery.toLowerCase())));
-    
-    filtered.forEach(i => {
-        inv += (parseFloat(i.buy) || 0);
-        const imgSrc = i.img || 'https://via.placeholder.com/45';
-        
-        // ইমেজ স্টাইল করার জন্য p-img এবং p-img-wrapper ব্যবহার করা হয়েছে
-        body.innerHTML += `<tr>
-            <td>
-                <div class="p-img-wrapper" style="display:inline-block; vertical-align:middle;">
-                    <img src="${imgSrc}" 
-                         class="p-img" 
-                         style="width:50px; height:50px; border-radius:50%; object-fit:cover; border: 1px solid rgba(255,255,255,0.1);" 
-                         ondblclick="openImgModal('${imgSrc}')">
-                </div>
-                <span style="margin-left:15px; font-weight:600;">${i.name}</span>
-            </td>
-            <td><span style="color:var(--neon-blue); background:rgba(71,225,255,0.05); padding:4px 10px; border-radius:20px; font-size:11px;">${i.cat}</span></td>
-            <td style="font-size:11px; color:#948fb1">${i.dealer}</td>
-            <td><span class="price-tag">₹${i.buy}</span></td>
-            <td style="color:var(--neon-pink); font-weight:700">₹${Math.round(i.sell)}</td>
-            <td style="font-size:11px; white-space:nowrap;">${formatDateTime(i.date)}</td>
-            <td style="font-family:monospace; color:var(--neon-blue)">${i.serial || 'N/A'}</td>
-            <td><div class="action-btns"><button class="icon-btn btn-edit" onclick="openEdit(${i.id})">✎</button><button class="icon-btn btn-del" onclick="triggerDelete(${i.id})">✖</button></div></td>
-        </tr>`;
-    });
-
-    document.getElementById('tQty').innerText = filtered.length;
-    document.getElementById('tInv').innerText = '₹' + inv.toLocaleString();
-    document.getElementById('tGst').innerText = '₹' + (inv * 0.18).toLocaleString();
-    document.getElementById('tProfit').innerText = '₹' + (inv * 0.05).toLocaleString();
-    
-    const dataMap = {}; stock.forEach(i => dataMap[i.cat] = (dataMap[i.cat] || 0) + 1);
-    drawChart(dataMap);
-}
-
-function drawChart(data) {
-        const ctx = document.getElementById('roundChart').getContext('2d');
-        if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, { type: 'polarArea', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#bc47ff', '#47e1ff', '#ff47bc', '#39ff14'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#948fb1', font: { size: 10 } } } }, scales: { r: { display: false } } } });
-    }
-
-    function updateInterface() {
-    // ১. আগের ক্যাটাগরি এবং ডিলার লোড করা (আপনার কোড)
-    document.getElementById('pCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-    document.getElementById('pDealer').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
-    document.getElementById('editCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-    document.getElementById('editDlr').innerHTML = dlrs.map(d => `<option value="${d}">${d}</option>`).join('');
-    
-    // ২. প্রোডাক্ট নামের সাজেশনের জন্য এই অংশটুকু নতুন যোগ করা হলো
-    const uniqueNames = [...new Set(stock.map(item => item.name))];
-    const dataList = document.getElementById('productNameSuggestions');
-    if (dataList) {
-        dataList.innerHTML = uniqueNames.map(name => `<option value="${name}">`).join('');
-    }
-
-    const sidebar = document.getElementById('sidebarCats');
-    sidebar.innerHTML = `<li class="nav-link ${currentFilter==='All'?'active':''}" onclick="setFilter('All')">Dashboard</li>` + 
-                        cats.map(c => `<li class="nav-link ${currentFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</li>`).join('');
-    
-    render();
-}
-function openImgModal(src) {
-    const modal = document.getElementById('imgModal');
-    const modalImg = document.getElementById('modalImg');
-
-    // যদি ইমেজ না থাকে তবে ডিফল্ট ইমেজ দেখাবে
-    if (!src || src.includes('placeholder')) {
-        return; 
-    }
-
-    modal.style.display = "flex"; // ফ্লেক্স মোড ব্যবহার করে মাঝখানে আনা
-    modalImg.src = src;
-}
-
-function closeImgModal() {
-    document.getElementById('imgModal').style.display = "none";
-}
-
     function triggerActionModal(action, type) {
         const input = document.getElementById('modalInput');
         if(action === 'add') {
             document.getElementById('modalTitle').innerText = "Add Item";
             input.style.display = "block"; input.value = "";
-            document.getElementById('modalConfirmBtn').onclick = () => { if(input.value) { if(type === 'cat') cats.push(input.value); else dlrs.push(input.value); updateInterface(); closeModal(); } };
+            document.getElementById('modalConfirmBtn').onclick = () => { 
+                if(input.value) { 
+                    if(type === 'cat') cats.push(input.value); else dlrs.push(input.value); 
+                    updateInterface(); closeModal(); 
+                } 
+            };
         }
         document.getElementById('reusableModal').style.display = 'flex';
     }
 
-    function handleFile(input) { const reader = new FileReader(); reader.onload = (e) => { fileBase64 = e.target.result; document.getElementById('fileTxt').innerText = "Loaded ✅"; }; reader.readAsDataURL(input.files[0]); }
+    function handleFile(input) { 
+        const reader = new FileReader(); 
+        reader.onload = (e) => { 
+            fileBase64 = e.target.result; 
+            document.getElementById('fileTxt').innerText = "Loaded ✅"; 
+        }; 
+        reader.readAsDataURL(input.files[0]); 
+    }
     function setFilter(c) { currentFilter = c; updateInterface(); }
     function handleSearch() { searchQuery = document.getElementById('searchInput').value; render(); }
     function closeModal() { document.getElementById('reusableModal').style.display = 'none'; }
     function closeEdit() { document.getElementById('editModal').style.display = 'none'; }
-    function closeImgModal() { document.getElementById('imgModal').style.display = 'none'; }
-    function exportToExcel() { const data = stock.map(i => ({ ID: i.id, Name: i.name, Category: i.cat, Dealer: i.dealer, Buy: i.buy, Sale: i.sell, Date: i.date, Serial: i.serial })); const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Inventory"); XLSX.writeFile(wb, "Report.xlsx"); }
+    function exportToExcel() { 
+        const data = stock.map(i => ({ ID: i.id, Name: i.name, Category: i.cat, Dealer: i.dealer, Buy: i.buy, Sale: i.sell, Date: i.date, Serial: i.serial })); 
+        const ws = XLSX.utils.json_to_sheet(data); 
+        const wb = XLSX.utils.book_new(); 
+        XLSX.utils.book_append_sheet(wb, ws, "Inventory"); 
+        XLSX.writeFile(wb, "Report.xlsx"); 
+    }
 
     window.onload = fetchFromGoogle;
 </script>
 </body>
 </html>
-
-
-
