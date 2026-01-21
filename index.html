@@ -1294,16 +1294,27 @@ async function saveEdit() {
     showLoader();
 
     try {
-        // আগে ডাটাবেস থেকে ওই প্রোডাক্টের পুরনো তথ্যগুলো একবার দেখে নিই
+        // ধাপ ১: ডাটাবেস থেকে পুরনো তথ্যটি একবার পড়ে নিন
         const snapshot = await db.ref('products/' + id).once('value');
         const oldData = snapshot.val();
         
         const buy = parseFloat(document.getElementById('editBuy').value) || 0;
         const margin = parseFloat(document.getElementById('editMargin').value) || 5;
 
-        // নতুন কোনো তারিখ ইনপুট না থাকলে পুরনো তারিখটাই ব্যবহার হবে
+        // ধাপ ২: তারিখ লজিক - ইউজার এডিট বক্সে নতুন তারিখ দিলে সেটা নেবে, নয়তো পুরনো সময়টাই থাকবে
         const inputDate = document.getElementById('editDate').value;
-        const finalDate = inputDate ? new Date(inputDate).toString() : oldData.date;
+        let finalDate;
+
+        if (inputDate) {
+            // যদি ক্যালেন্ডার থেকে নতুন তারিখ সিলেক্ট করেন, তবে বর্তমান সময়সহ সেভ হবে
+            const now = new Date();
+            const selectedDate = new Date(inputDate);
+            selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+            finalDate = selectedDate.toString(); // লোকাল স্ট্রিং ফরম্যাটে সেভ হবে
+        } else {
+            // যদি ইনপুট খালি থাকে, তবে ডাটাবেসে যা ছিল তাই থাকবে
+            finalDate = oldData.date; 
+        }
 
         const updatedData = {
             name: document.getElementById('editName').value,
@@ -1314,19 +1325,44 @@ async function saveEdit() {
             sell: buy + (buy * margin / 100),
             serial: document.getElementById('editSerial').value,
             img: document.getElementById('editImg').value,
-            date: finalDate // এখানে আগের তারিখ অথবা নতুন তারিখ সেট হবে
+            date: finalDate // সঠিক সময় নিশ্চিত করা হলো
         };
 
+        // Firebase আপডেট
         await db.ref('products/' + id).update(updatedData);
 
         closeEdit();
-        alert("Product Updated Successfully! ✅");
+        alert("Product Updated! Time Preserved. ✅");
     } catch (error) {
         console.error("Update Error:", error);
     } finally {
         hideLoader();
     }
 }
+
+
+
+function formatDateTime(dateStr) {
+    if (!dateStr || dateStr === "N/A") return "N/A";
+    const date = new Date(dateStr);
+    if (isNaN(date)) return dateStr;
+
+    return date.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    }).replace(',', '');
+}
+
+
+
+
+
+
+
 
 let deleteIdPending = null;
 
@@ -1568,11 +1604,11 @@ function fetchFromGoogle2() {
 
     function closeImgModal() { document.getElementById('imgModal').style.display = "none"; }
 
-    function openEdit(id) {
+function openEdit(id) {
     const item = stock.find(s => s.id === id);
     if (!item) return;
 
-    document.getElementById('editId').value = id; // Firebase Key
+    document.getElementById('editId').value = id;
     document.getElementById('editName').value = item.name;
     document.getElementById('editCat').value = item.cat;
     document.getElementById('editDlr').value = item.dealer;
@@ -1581,6 +1617,15 @@ function fetchFromGoogle2() {
     document.getElementById('editSerial').value = item.serial;
     document.getElementById('editImg').value = item.img || "";
     
+    // এডিট বক্সে আগের তারিখটি ফরম্যাট করে দেখানো (Optional)
+    if(item.date) {
+        const d = new Date(item.date);
+        if(!isNaN(d)) {
+            const dateOnly = d.toISOString().split('T')[0];
+            document.getElementById('editDate').value = dateOnly;
+        }
+    }
+
     calcEditSale();
     document.getElementById('editModal').style.display = 'flex';
 }
@@ -1653,4 +1698,3 @@ function triggerActionModal(action, type) {
 </script>
 </body>
 </html>
-
