@@ -1289,13 +1289,21 @@ window.onload = syncData;
 window.onload = syncData;
 
     // ২. ১০ গুণ দ্রুত এডিট সেভ করার ফাংশন
-   async function saveEdit() {
+async function saveEdit() {
     const id = document.getElementById('editId').value;
     showLoader();
 
     try {
+        // আগে ডাটাবেস থেকে ওই প্রোডাক্টের পুরনো তথ্যগুলো একবার দেখে নিই
+        const snapshot = await db.ref('products/' + id).once('value');
+        const oldData = snapshot.val();
+        
         const buy = parseFloat(document.getElementById('editBuy').value) || 0;
         const margin = parseFloat(document.getElementById('editMargin').value) || 5;
+
+        // নতুন কোনো তারিখ ইনপুট না থাকলে পুরনো তারিখটাই ব্যবহার হবে
+        const inputDate = document.getElementById('editDate').value;
+        const finalDate = inputDate ? new Date(inputDate).toString() : oldData.date;
 
         const updatedData = {
             name: document.getElementById('editName').value,
@@ -1306,14 +1314,13 @@ window.onload = syncData;
             sell: buy + (buy * margin / 100),
             serial: document.getElementById('editSerial').value,
             img: document.getElementById('editImg').value,
-            date: new Date().toLocaleString() // আপডেটের সময় রেকর্ড রাখা
+            date: finalDate // এখানে আগের তারিখ অথবা নতুন তারিখ সেট হবে
         };
 
-        // Firebase-এ ডাটা আপডেট করা
         await db.ref('products/' + id).update(updatedData);
 
         closeEdit();
-        alert("Product Updated Successfully! ✨");
+        alert("Product Updated Successfully! ✅");
     } catch (error) {
         console.error("Update Error:", error);
     } finally {
@@ -1646,3 +1653,4 @@ function triggerActionModal(action, type) {
 </script>
 </body>
 </html>
+
