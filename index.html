@@ -899,9 +899,11 @@ select:focus {
 <button class="btn-gst" onclick="openGstCalculator()">
     <span>📊</span> GST Calculator
 </button>
-        <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
+        <button class="btn-refresh" onclick="fetchFromGoogle2()">Home Invest</button>
+        <button class="btn-Open" onclick="fetchFromGoogle2()">Khatabook</button>
         <button class="btn-refresh" onclick="fetchFromGoogle()">Open Firebase</button>
-<button class="btn-Open" onclick="fetchFromGoogle()">Open Excel</button>
+        <button class="btn-Open" onclick="fetchFromGoogle2()">Open Excel</button>
+        <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
     </div>
 
     <div class="stats-grid">
@@ -1625,3 +1627,4 @@ function triggerActionModal(action, type) {
 </script>
 </body>
 </html>
+
