@@ -6,12 +6,40 @@
     <title>Studio Line India | Pro Inventory</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <head>
     <title>Studio Line India | Pro Inventory</title>
     <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=4DkF7Aqa5SO4&format=png&color=000000">
 </head> 
     <style>
+/* Details কলামের প্রোফেশনাল টেক্সট স্টাইল */
+.product-title {
+    font-size: 14px;
+    font-weight: 600; /* বোল্ড টেক্সট */
+    color: #f8f9fa; /* একদম সাদা নয়, প্রিমিয়াম অফ-হোয়াইট */
+    letter-spacing: 0.4px;
+    line-height: 1.4;
+    transition: all 0.3s ease;
+    display: block;
+    max-width: 250px; /* নাম খুব বড় হলে লাইন ভেঙে যাবে */
+}
+
+/* মাউস নিলে নামের কালার হালকা নিওন ব্লু হবে */
+.product-name-cell:hover .product-title {
+    color: var(--neon-blue);
+    text-shadow: 0 0 8px rgba(71, 225, 255, 0.3);
+}
+
+/* টেক্সটের নিচের সাব-টেক্সট (যদি সিরিয়াল বা অন্য কিছু দেখাতে চান) */
+.product-sub-text {
+    font-size: 11px;
+    color: #948fb1;
+    font-weight: 400;
+    margin-top: 2px;
+}
         :root {
             --bg-dark: #0b0e1a;
             --sidebar-bg: #11142b;
@@ -81,12 +109,77 @@
             100% { transform: rotate(360deg); }
         }
 
+/* ক্যাটাগরি টেক্সট যাতে না ভেঙে যায় তার সমাধান */
+.nav-link, 
+#sidebarCats li, 
+td span[style*="background:rgba(71,225,255,0.08)"] {
+    white-space: nowrap;      /* টেক্সট এক লাইনে রাখবে */
+    width: fit-content;      /* কন্টেন্ট অনুযায়ী বক্স বড় হবে */
+    min-width: 120px;        /* একটি নূন্যতম প্রস্থ সেট করুন */
+    display: inline-block;   /* বক্স হিসেবে কাজ করবে */
+    text-align: center;      /* টেক্সট মাঝখানে রাখবে */
+}
+
+
+/* অ্যানিমেশন ছাড়া প্রিমিয়াম স্থির বর্ডার */
+.neon-modal-outer {
+    position: relative;
+    width: 400px;
+    padding: 2px; /* বর্ডারের পুরুত্ব */
+    /* স্থির গ্রেডিয়েন্ট কালার */
+    background: linear-gradient(135deg, #ff47bc 0%, #bc47ff 50%, #47e1ff 100%);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(188, 71, 255, 0.2);
+}
+
+.neon-modal-inner {
+    background: #0b0e1a; /* আপনার অ্যাপের ডার্ক ব্যাকগ্রাউন্ড */
+    border-radius: 18px;
+    padding: 30px;
+    text-align: center;
+}
+
+/* ডিলিট বাটনের স্টাইল */
+.btn-delete-flat {
+    background: #ff47bc;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-delete-flat:hover {
+    background: #ff1a75;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 71, 188, 0.4);
+}
+
+
+
+@keyframes rotateBorder {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.inner-box {
+    position: relative;
+    background: #0f1224; /* ডার্ক ব্যাকগ্রাউন্ড */
+    border-radius: 22px;
+    padding: 35px;
+    width: 100%;
+    z-index: 10;
+    text-align: center;
+}
+
 .product-img {
     width: 40px;
     height: 40px;
     object-fit: cover; /* ইমেজ যাতে চ্যাপ্টা না হয়ে যায় */
-    border-radius: 50%; /* পুরোপুরি গোল করার জন্য */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* হালকা বর্ডার */
+    border-radius: 0%; /* পুরোপুরি গোল করার জন্য */
+    border: 0px solid rgba(255, 255, 255, 0.1); /* হালকা বর্ডার */
     background: #1a1d33; /* ইমেজ লোড না হলে ব্যাকগ্রাউন্ড */
 }
 /* মাউস হোভার করলে যা হবে */
@@ -135,6 +228,536 @@
     cursor: pointer;
 }
 
+
+
+
+
+/* বাটনগুলোর আধুনিক লেআউট */
+.control-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    align-items: center;
+}
+
+.control-group select {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* কমন বাটন স্টাইল */
+.btn-action {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 800;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* প্লাস বাটন - সাইবার ব্লু গ্রেডিয়েন্ট */
+.btn-plus {
+    background: linear-gradient(135deg, #47e1ff 0%, #00d2ff 100%);
+    color: #0b0e1a;
+    box-shadow: 0 4px 15px rgba(71, 225, 255, 0.3);
+}
+
+.btn-plus:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 0 20px rgba(71, 225, 255, 0.5);
+}
+
+/* মাইনাস বাটন - নিওন রোজ গ্রেডিয়েন্ট */
+.btn-minus {
+    background: linear-gradient(135deg, #ff47bc 0%, #ff1a75 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 71, 188, 0.3);
+}
+
+.btn-minus:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 71, 188, 0.5);
+}
+
+/* ক্লিক করার সময় হালকা দেবে যাওয়া */
+.btn-action:active {
+    transform: scale(0.9);
+}
+
+
+
+
+
+
+/* ড্রপডাউন মেনুর আধুনিক স্টাইল */
+select {
+    appearance: none; /* ডিফল্ট অ্যারো লুকানো */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 18px;
+    padding-right: 45px !important; /* অ্যারোর জন্য জায়গা */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* মাউস নিলে বর্ডার গ্লো করবে */
+select:hover {
+    border-color: var(--neon-blue) !important;
+    box-shadow: 0 0 10px rgba(71, 225, 255, 0.2);
+}
+
+/* ড্রপডাউন অপশনগুলোর কালার ঠিক করা */
+select option {
+    background-color: #11142b; /* আপনার সাইডবার বা কার্ডের ব্যাকগ্রাউন্ড কালার */
+    color: white;
+    padding: 12px;
+}
+
+/* ফোকাস অবস্থায় স্টাইল */
+select:focus {
+    outline: none;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 15px rgba(188, 71, 255, 0.3);
+}
+
+
+
+
+
+
+
+
+/* PIP-TAG এর জন্য প্রফেশনাল গ্রে স্টাইল */
+.pip-tag-container {
+    background: rgba(255, 255, 255, 0.05); /* হালকা সাদাটে আভা */
+    border: 1px solid rgba(148, 143, 177, 0.3); /* গ্রে বর্ডার */
+    padding: 4px 12px;
+    border-radius: 20px; /* আপনার রিকোয়েস্ট অনুযায়ী রাউন্ড শেপ */
+    color: #948fb1; /* প্রফেশনাল গ্রে কালার */
+    font-weight: 600;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    filter: blur(5px); /* শুরুতে ব্লার থাকবে */
+    user-select: none;
+    display: inline-block;
+    letter-spacing: 0.5px;
+}
+
+/* মাউস নিলে ব্লার চলে যাবে এবং হালকা উজ্জ্বল হবে */
+.pip-tag-container:hover {
+    filter: blur(0);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff; /* হোভার করলে টেক্সট সাদা হয়ে যাবে */
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+
+
+
+/* Open Firebase বাটনের জন্য নতুন কালার স্টাইল */
+.btn-refresh {
+    background: linear-gradient(135deg, #FFCA28 0%, #F57C00 100%); /* Firebase Yellow to Orange */
+    border: none;
+    color: #0b0e1a; /* ডার্ক টেক্সট যাতে পরিষ্কার দেখা যায় */
+    padding: 10px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 11px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(245, 124, 0, 0.3);
+}
+
+/* মাউস নিলে আরও উজ্জ্বল হবে */
+.btn-refresh:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 202, 40, 0.4);
+    filter: brightness(1.1);
+}
+
+/* বাটন ক্লিক করলে হালকা দেবে যাবে */
+.btn-refresh:active {
+    transform: translateY(0);
+}
+
+
+
+
+
+/* GST Calculator Modal Style */
+.gst-modal-content {
+    background: #0b0e1a;
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 25px rgba(71, 225, 255, 0.3);
+    border-radius: 20px;
+    width: 450px;
+    padding: 30px;
+    color: white;
+}
+
+.gst-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.gst-rate-btn {
+    background: var(--card-glass);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.gst-rate-btn.active {
+    background: var(--neon-blue);
+    color: #000;
+    box-shadow: 0 0 15px var(--neon-blue);
+    border-color: var(--neon-blue);
+}
+
+.gst-input-group {
+    margin-bottom: 15px;
+}
+
+.gst-input-group label {
+    display: block;
+    font-size: 12px;
+    color: #948fb1;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.gst-input-group input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 12px;
+    border-radius: 10px;
+    color: var(--neon-blue);
+    font-weight: bold;
+    font-size: 16px;
+    outline: none;
+}
+
+.gst-result-box {
+    background: rgba(57, 255, 20, 0.05);
+    border: 1px dashed var(--neon-green);
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+
+
+
+/* সকল বাটনের জন্য কমন প্রিমিয়াম স্টাইল */
+.btn-refresh, .btn-gst, .export-btn {
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 25px;
+    border-radius: 30px; /* আপনার ছবির মতো পুরোপুরি রাউন্ড */
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 12px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    letter-spacing: 1px;
+    backdrop-filter: blur(5px);
+}
+
+/* ১. Export Excel বাটন (Pink/Purple Gradient) */
+.export-btn {
+    background: linear-gradient(135deg, rgba(255, 71, 188, 0.2), rgba(188, 71, 255, 0.4));
+    border-color: #ff47bc;
+    box-shadow: 0 0 15px rgba(255, 71, 188, 0.3);
+}
+.export-btn:hover {
+    background: #ff47bc;
+    box-shadow: 0 0 25px rgba(255, 71, 188, 0.6);
+    transform: translateY(-3px) scale(1.05);
+}
+
+/* ২. Open Firebase বাটন (Yellow/Orange Gradient) */
+.btn-refresh {
+    background: linear-gradient(135deg, rgba(255, 202, 40, 0.2), rgba(245, 124, 0, 0.4));
+    border-color: #FFCA28;
+    box-shadow: 0 0 15px rgba(255, 202, 40, 0.3);
+}
+.btn-refresh:hover {
+    background: #FFCA28;
+    color: #000; /* হালকা ডার্ক টেক্সট */
+    box-shadow: 0 0 25px rgba(255, 202, 40, 0.6);
+    transform: translateY(-3px) scale(1.05);
+}
+
+/* ৩. GST Calculator বাটন (Cyber Blue Gradient) */
+.btn-gst {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.2), rgba(58, 123, 213, 0.4));
+    border-color: #00d2ff;
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
+}
+.btn-gst:hover {
+    background: #00d2ff;
+    color: #000;
+    box-shadow: 0 0 25px rgba(0, 210, 255, 0.6);
+    transform: translateY(-3px) scale(1.05);
+}
+
+
+
+
+
+
+
+/* ১. সাইডবার মেনু বাটন স্টাইল - Full Width ও Left Alignment */
+.nav-link {
+    padding: 12px 20px;     
+    margin-bottom: 8px;     
+    font-size: 15px;        /* ফন্ট সাইজ বড় করা হয়েছে */
+    font-weight: 600;       /* ক্লিক করলে বোল্ড হবে না */
+    border-radius: 12px;
+    cursor: pointer;
+    color: #948fb1;
+    transition: all 0.3s ease;
+    list-style: none;
+    text-transform: uppercase;
+    
+    /* লেফট টু রাইট এলাইনমেন্টের মেইন কোড */
+    display: flex;
+    align-items: Left;
+    justify-content: flex-start; /* লেখা বাম দিক থেকে শুরু হবে */
+    width: 100%;                 /* বাটনটি বাম থেকে ডান পর্যন্ত পূর্ণ চওড়া হবে */
+    text-align: left;
+    border: 1px solid transparent; /* ডিফল্ট বর্ডার ইনভিজিবল */
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* ২. হোভার করলে নিওন সাইয়ান বর্ডার ইফেক্ট (আপনার ছবির মতো) */
+.nav-link:hover {
+    color: #fff;
+    background: rgba(71, 225, 255, 0.05);
+    border: 1px solid #47e1ff; /* নিওন সাইয়ান বর্ডার */
+    box-shadow: 0 0 15px rgba(71, 225, 255, 0.3);
+    padding-left: 25px; /* হোভার করলে হালকা মুভমেন্ট */
+}
+
+/* ৩. অ্যাক্টিভ স্টাইল (বেগুনি গ্লো - বোল্ড হবে না) */
+.nav-link.active { 
+    background: #bc47ff; /* সলিড পার্পল */
+    color: white; 
+    font-weight: 800;    /* বোল্ড হওয়া বন্ধ */
+    border: 1px solid #bc47ff;
+    box-shadow: 0 0 20px rgba(188, 71, 255, 0.5);
+}
+
+/* ৪. সাইডবার কন্টেইনার ফিক্স */
+#sidebarCats {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* যাতে বাটনগুলো সাইডবারের পুরো চওড়া জায়গা নেয় */
+}
+
+#sidebarCats li {
+    width: 100%;
+    list-style: none;
+}
+
+/* ৫. ব্র্যান্ড টাইটেল (সেন্টার ও বড়) */
+.brand { 
+    font-size: 22px; 
+    font-weight: 800; 
+    color: var(--neon-blue); 
+    margin-bottom: 30px; 
+    text-transform: uppercase; 
+    text-align: left; 
+    letter-spacing: 1px;
+}
+
+/* ক্লিক করার সময় প্রেস ইফেক্ট */
+.nav-link:active {
+    transform: scale(0.98);
+}
+
+
+
+
+
+/* সকল বাটনের জন্য ফিক্সড উইথ এবং সেম স্টাইল */
+.export-btn, .btn-refresh, .btn-Open, .btn-gst {
+    width: 180px; /* সব বাটন একই চওড়া হবে */
+    height: 45px; /* সব বাটন একই উচ্চতা হবে */
+    padding: 0;   /* প্যাডিং রিসেট করা হলো যাতে সাইজ না বাড়ে */
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    backdrop-filter: blur(5px);
+}
+
+/* ১. Export Excel (Pink) */
+.export-btn {
+    background: linear-gradient(135deg, rgba(255, 71, 188, 0.2), rgba(188, 71, 255, 0.4));
+    border-color: #ff47bc;
+    box-shadow: 0 0 15px rgba(255, 71, 188, 0.3);
+}
+.export-btn:hover {
+    background: #ff47bc;
+    box-shadow: 0 0 25px rgba(255, 71, 188, 0.6);
+    transform: translateY(-3px);
+}
+
+/* ২. Open Firebase (Yellow) */
+.btn-refresh {
+    background: linear-gradient(135deg, rgba(255, 202, 40, 0.2), rgba(245, 124, 0, 0.4));
+    border-color: #FFCA28;
+    box-shadow: 0 0 15px rgba(255, 202, 40, 0.3);
+}
+.btn-refresh:hover {
+    background: #FFCA28;
+    color: #000;
+    box-shadow: 0 0 25px rgba(255, 202, 40, 0.6);
+    transform: translateY(-3px);
+}
+
+/* ৩. Open Excel (Cyber Blue) */
+.btn-Open {
+    background: linear-gradient(135deg, rgba(0, 198, 255, 0.2), rgba(0, 114, 255, 0.4));
+    border-color: #00c6ff;
+    box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3);
+}
+.btn-Open:hover {
+    background: #00c6ff;
+    color: #000;
+    box-shadow: 0 0 25px rgba(0, 198, 255, 0.6);
+    transform: translateY(-3px);
+}
+
+/* ক্লিক ইফেক্ট */
+.export-btn:active, .btn-refresh:active, .btn-Open:active {
+    transform: scale(0.95);
+}
+
+
+
+
+
+
+
+/* Customize the scrollbar track (the background) */
+.sidebar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #0b0b0b; /* Very dark background to make neon pop */
+}
+
+/* The scrollbar handle (the "Thumb") */
+.sidebar::-webkit-scrollbar-thumb {
+    background: #222; /* Subtle dark grey when idle */
+    border-radius: 10px;
+    border: 2px solid #0b0b0b;
+    transition: all 0.3s ease;
+}
+
+/* --- The Neon Light Effect on Hover --- */
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #00d4ff; /* Neon Blue */
+    /* This creates the 'glow' effect around the handle */
+    box-shadow: 0 0 10px #00d4ff, 
+                0 0 20px #00d4ff;
+    cursor: pointer;
+}
+
+/* For Firefox (Note: Firefox support for glow is limited, but we can set the color) */
+.sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: #222 #0b0b0b;
+}
+
+
+
+
+
+
+<style>
+    /* Add this to your CSS file */
+    .header-top {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Space between buttons */
+        padding: 15px;
+        background-color: #f8f9fa;
+        flex-wrap: wrap; /* Allows buttons to wrap on mobile screens */
+    }
+
+    .search-box {
+        flex-grow: 1; /* Makes the search bar take up available space */
+        min-width: 200px;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        padding: 8px 12px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap; /* Prevents text from breaking into two lines */
+    }
+
+
+
+
+
+
+
+
+
+
 /* জুম ইন এনিমেশন */
 @keyframes zoomIn {
     from { transform: scale(0.5); opacity: 0; }
@@ -144,8 +767,19 @@
         body { background: var(--bg-dark); color: var(--text-white); display: flex; min-height: 100vh; overflow-x: hidden; }
 
         .sidebar { width: 280px; background: var(--sidebar-bg); padding: 25px; border-right: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-        .brand { font-size: 20px; font-weight: 800; color: var(--neon-blue); margin-bottom: 30px; text-transform: uppercase; }
-        .nav-link { padding: 12px 15px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; color: #948fb1; font-size: 13px; font-weight: 600; transition: 0.3s; list-style: none; text-transform: uppercase; }
+/* সাইডবার মেনু আইটেমের সাইজ এবং গ্যাপ কমানো */
+.nav-link {
+    padding: 8px 15px;      /* padding ১২ থেকে কমিয়ে ৮ করা হয়েছে */
+    margin-bottom: 4px;      /* margin ৮ থেকে কমিয়ে ৪ করা হয়েছে */
+    font-size: 12px;        /* ফন্ট সাইজ ১৩ থেকে কমিয়ে ১২ করা হয়েছে */
+    border-radius: 8px;      /* রাউন্ড শেপ একটু কমানো হয়েছে */
+    line-height: 1.2;       /* লাইনের উচ্চতা কমানো হয়েছে */
+}
+
+/* ব্র্যান্ডের নিচের গ্যাপ কমানো */
+.brand {
+    margin-bottom: 15px;    /* ৩০ থেকে কমিয়ে ১৫ করা হয়েছে */
+}
         .nav-link.active { background: var(--accent); color: white; box-shadow: 0 0 15px rgba(188, 71, 255, 0.4); }
 
         .main-container { flex: 1; padding: 30px; }
@@ -168,7 +802,32 @@
         .stat-card .val { font-size: 28px; font-weight: 800; margin-top: 10px; display: block; }
 
         .mid-section { display: grid; grid-template-columns: 1fr 400px; gap: 25px; margin-bottom: 30px; }
-        .chart-box { background: var(--card-glass); padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .chart-box {
+    position: relative;
+    background: rgba(17, 20, 43, 0.8);
+    border-radius: 20px;
+    padding: 30px;
+    /* সাইডে নিওন পিংক গ্লো ইফেক্ট */
+    border: 1px solid rgba(255, 71, 188, 0.3);
+    box-shadow: 0 0 20px rgba(255, 71, 188, 0.15), 
+                inset 0 0 15px rgba(255, 71, 188, 0.1);
+}
+
+/* উপরের এবং বাম পাশের উজ্জ্বল নিওন লাইন */
+.chart-box::after {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    border-radius: 20px;
+    pointer-events: none;
+    background: linear-gradient(135deg, #ff47bc, transparent 40%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    padding: 2px; /* বর্ডারের পুরুত্ব */
+    filter: blur(1px);
+}
         .form-box { background: var(--card-glass); padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); }
         
         input, select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; color: white; margin-bottom: 12px; outline: none; }
@@ -282,8 +941,14 @@
     <div class="header-top">
         <div class="search-box"><input type="text" id="searchInput" placeholder="Search product..." onkeyup="handleSearch()"></div>
         <datalist id="productSuggestions"></datalist>
+<button class="btn-gst" onclick="openGstCalculator()">
+    <span>📊</span> GST Calculator
+</button>
+        <button class="btn-refresh" onclick="fetchFromGoogle2()">Home Invest</button>
+        <button class="btn-Open" onclick="fetchFromGoogle2()">Khatabook</button>
+        <button class="btn-refresh" onclick="fetchFromGoogle()">Open Firebase</button>
+        <button class="btn-Open" onclick="fetchFromGoogle2()">Open Excel</button>
         <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
-        <button class="btn-refresh" onclick="fetchFromGoogle()">Refresh Data</button>
     </div>
 
     <div class="stats-grid">
@@ -293,60 +958,212 @@
         <div class="stat-card glow-green"><h3>Projected Profit</h3><div class="val" id="tProfit" style="color:var(--neon-green)">₹0</div></div>
     </div>
 
-    <div class="mid-section">
-        <div class="chart-box"><canvas id="roundChart"></canvas></div>
-        <div class="form-box">
-            <h2>Add New Product</h2>
-           <input type="text" id="pName" placeholder="Product Name" list="productNameSuggestions" autocomplete="off">
-<datalist id="productNameSuggestions"></datalist>
-            <div class="control-group">
-                <select id="pCat"></select>
-                <button class="btn-action btn-plus" onclick="triggerActionModal('add', 'cat')">+</button>
-                <button class="btn-action btn-minus" onclick="triggerActionModal('rem', 'cat')">−</button>
-            </div>
-            <div class="control-group">
-                <select id="pDealer"></select>
-                <button class="btn-action btn-plus" onclick="triggerActionModal('add', 'dlr')">+</button>
-                <button class="btn-action btn-minus" onclick="triggerActionModal('rem', 'dlr')">−</button>
-            </div>
-            <input type="number" id="pBuy" placeholder="Buy Price">
-            <input type="text" id="pSerial" placeholder="Serial Number">
-            <input type="date" id="pDate">
-            <input type="text" id="pImgUrl" placeholder="Image URL (Optional)">
-            <div style="border: 2px dashed rgba(255,255,255,0.1); padding: 12px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 15px; font-size: 11px;" onclick="document.getElementById('fileIn').click()">
-                📸 <span id="fileTxt">Upload Product Image</span>
-                <input type="file" id="fileIn" hidden accept="image/*" onchange="handleFile(this)">
-            </div>
-            <button class="btn-update" id="addBtn" onclick="addItem()">Update Stock</button>
-        </div>
-    </div>
 
-    <div class="table-wrap">
-        <table>
-            <thead>
-    <tr>
-        <th>Details</th>
-        <th>Category</th>
-        <th>Dealer</th>
-        <th>Buy Price</th>
-        <th>Sale Price</th>
-        <th style="color: #948fb1;">HSN CODE</th> <th>Date</th>
-        <th>Serial</th>
-        <th>Action</th>
-    </tr>
-</thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+
+
+
+
+
+<div id="gstModal" class="modal-overlay">
+    <div class="gst-modal-content">
+        <h3 style="text-align:center; color:var(--neon-blue); margin-bottom:20px;">📊 GST CALCULATOR</h3>
+        
+        <label style="font-size: 12px; color: #948fb1;">SELECT GST RATE (%)</label>
+        <div class="gst-grid" id="gstRates">
+            <button class="gst-rate-btn" onclick="setGstRate(5, this)">5%</button>
+            <button class="gst-rate-btn" onclick="setGstRate(12, this)">12%</button>
+            <button class="gst-rate-btn active" onclick="setGstRate(18, this)">18%</button>
+            <button class="gst-rate-btn" onclick="setGstRate(28, this)">28%</button>
+        </div>
+
+        <div class="gst-input-group">
+            <label>Amount (Without GST)</label>
+            <input type="number" id="baseAmount" placeholder="0.00" oninput="calculateGst()">
+        </div>
+
+        <div class="gst-result-box">
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span>GST Amount:</span>
+                <span id="resGst" style="color:var(--neon-pink);">₹0</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:18px;">
+                <span>Total Amount:</span>
+                <span id="resTotal" style="color:var(--neon-green);">₹0</span>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="closeGstModal()" style="flex:1; padding:12px; border-radius:10px; background:var(--card-glass); border:1px solid rgba(255,255,255,0.1); color:white; cursor:pointer;">Close</button>
+            <button onclick="resetGst()" style="flex:1; padding:12px; border-radius:10px; background:rgba(255, 95, 95, 0.2); border:1px solid var(--danger); color:var(--danger); cursor:pointer;">Clear</button>
+        </div>
     </div>
 </div>
 
+
+
+<div class="mid-section">
+    <div class="chart-box"><canvas id="roundChart"></canvas></div>
+<div class="form-box">
+    <h2>Add New Product</h2>
+    <input type="text" id="pName" placeholder="Product Name" list="productNameSuggestions" autocomplete="off">
+    <datalist id="productNameSuggestions"></datalist>
+    
+    <select id="pCat" style="width: 100%; margin-bottom: 12px;"></select>
+    <select id="pDealer" style="width: 100%; margin-bottom: 12px;"></select>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+        <input type="number" id="pBuy" placeholder="Buy Price" oninput="calculateLivePrice()" style="margin-bottom: 0; flex: 2;">
+<div style="flex: 1; position: relative;">
+    <input type="number" id="pMargin" placeholder="5" value="5" oninput="calculateLivePrice()" 
+           style="margin-bottom: 0; 
+                  text-align: center; 
+                  background: rgba(255, 255, 255, 0.05); /* হালকা গ্রে ব্যাকগ্রাউন্ড */
+                  border: 1px solid #4a4a4a; /* ডার্ক গ্রে বর্ডার */
+                  color: #d1d1d6; /* লাইট গ্রে টেক্সট */
+                  font-weight: bold; 
+                  padding-right: 20px;
+                  outline: none;
+                  border-radius: 12px;">
+    <span style="position: absolute; 
+                 right: 10px; 
+                 top: 50%; 
+                 transform: translateY(-50%); 
+                 color: #d1d1d6; /* লাইট গ্রে টেক্সট */
+                 font-weight: bold;
+                 pointer-events: none;">%</span>
+</div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+        <input type="number" id="pOnlinePrice" placeholder="Online Price" style="margin-bottom: 0; flex: 1;">
+        <div id="pTotalDisplay" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--neon-blue); font-weight: 800; font-size: 16px;">
+            ₹0
+        </div>
+    </div>
+
+    <input type="text" id="pSerial" placeholder="Serial Number">
+    <input type="date" id="pDate">
+    <input type="text" id="pImgUrl" placeholder="Image URL (Optional)">
+    
+    <button class="btn-update" id="addBtn" onclick="addItem()">Update Stock</button>
+</div>
+</div>
+
+
+<div id="neonConfirmModal" class="modal-overlay" style="display:none;">
+    <div class="neon-modal-content">
+        <div class="inner-box">
+            <div style="font-size: 50px; margin-bottom: 10px; filter: drop-shadow(0 0 10px #ff4d94);">🗑️</div>
+            <h3 style="color: #fff; margin-bottom: 10px; font-size: 22px;">Are you sure?</h3>
+            <p style="color: #948fb1; margin-bottom: 25px; line-height: 1.5;">This item will be removed permanently from your inventory.</p>
+            
+            <div style="display: flex; gap: 15px;">
+                <button id="confirmDeleteBtn" style="flex:1; padding: 12px; border-radius: 12px; border: none; background: linear-gradient(90deg, #ff4d94, #ff1a75); color: white; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 77, 148, 0.4);">Yes, Delete</button>
+                <button onclick="closeNeonModal()" style="flex:1; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: white; cursor: pointer;">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+  <div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align: left; padding-left: 20px;">Details</th>
+                <th style="text-align: center;">Category</th>
+                <th style="text-align: left;">Dealer</th>
+                <th style="text-align: center;">PIP-TAG</th>
+                <th style="text-align: center;">Buy Price</th>
+                <th style="text-align: center;">Web Price</th>
+                <th style="text-align: center; color: #948fb1;">HSN CODE</th> <th style="text-align: center;">Date & Time</th>
+                <th style="text-align: left;">Serial No</th>
+                <th style="text-align: center;">Action</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+
 <script>
+
+
+
+
+
+
+let currentGstRate = 18;
+
+function openGstCalculator() {
+    document.getElementById('gstModal').style.display = 'flex';
+}
+
+function closeGstModal() {
+    document.getElementById('gstModal').style.display = 'none';
+}
+
+function setGstRate(rate, btn) {
+    currentGstRate = rate;
+    document.querySelectorAll('.gst-rate-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    calculateGst();
+}
+
+function calculateGst() {
+    const amount = parseFloat(document.getElementById('baseAmount').value) || 0;
+    const gstAmt = (amount * currentGstRate) / 100;
+    const total = amount + gstAmt;
+
+    document.getElementById('resGst').innerText = '₹' + gstAmt.toLocaleString();
+    document.getElementById('resTotal').innerText = '₹' + total.toLocaleString();
+}
+
+function resetGst() {
+    document.getElementById('baseAmount').value = '';
+    calculateGst();
+}
+
+
+
+// লাইভ ক্যালকুলেশন ফাংশন
+function calculateLivePrice() {
+    // ইনপুট থেকে মান নেওয়া
+    const buyPrice = parseFloat(document.getElementById('pBuy').value) || 0;
+    const marginPercent = parseFloat(document.getElementById('pMargin').value) || 0;
+
+    // বিক্রয়মূল্য হিসাব (ক্রয়মূল্য + লাভ)
+    const totalAmount = buyPrice + (buyPrice * marginPercent / 100);
+
+    // নীল রঙের বক্সে ফলাফল দেখানো (টাকা চিহ্ন এবং কমা ফরম্যাটসহ)
+    document.getElementById('pTotalDisplay').innerText = '₹' + Math.round(totalAmount).toLocaleString();
+}
+
+// addItem ফাংশন সফলভাবে সম্পন্ন হওয়ার পর রিসেট করার জন্য এই লাইনটি ব্যবহার করবেন:
+// document.getElementById('pTotalDisplay').innerText = "₹0";
+
+
+
+// আপনার চাবিকাঠি (Firebase Config)
+const firebaseConfig = {
+  apiKey: "AIzaSyAQ4ycMhb2s8u3CuKeHIred39YJa7I_c_E",
+  authDomain: "inventory-glow.firebaseapp.com",
+  projectId: "inventory-glow",
+  storageBucket: "inventory-glow.firebasestorage.app",
+  messagingSenderId: "933378258854",
+  appId: "1:933378258854:web:937d18ddd972505ab1c167"
+};
+
+// ইনিশিয়ালাইজ
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const storage = firebase.storage();
+
     const URL_PERMANENT = "https://script.google.com/macros/s/AKfycbyreFXvejr6Z4-nGPMMfExpNfd8m5PxTyNa8Z9mt75O5TcYWK-qNRicR2BqIszuCsKU/exec";
-    const URL_DELETE = "https://script.google.com/macros/s/AKfycbxwSxAC3hbHuXre36QkHRZUCactbF3m3tPRLryD8InYfxJEGny8MQHUte3EcAhxbeQW/exec";
+
 
     let stock = [];
-    let cats = ["PROCESSOR", "MOTHERBOARD", "RAM (DDR4 & DDR5)", "STORAGE (NVME & HDD)", "SMPS POWER SUPPLY", "CABINET (RGB & ARGB)", "GRAPHICS CARD", "MONITOR", "CPU COOLER", "KEYBOARD & MOUSE", "UPS (POWER SUPPLY)", "SOUND SYSTEM", "BT WIRELESS USB ADAPTERS", "RGB & ARGB FAN", "DP & HDMI CABLE", "EXTRA PRODUCT"];
-    let dlrs = ["SUNTRONIC SYSTEM", "SUNTRONIC INFOTECH PVT. LTD.", "SUPREME INFOTRADE PVT LTD", "MANINDRA INFOTECH", "GIRI COMPUTER", "( PC HUB 24-25 ) Stock "];
+    let cats = ["INTEL® PROCESSORS","AMD Ryzen™ Processors", "MOTHERBOARD", "RAM_DDR5 | DDR4", "GRAPHICS CARD", "M.2 NVME GEN4", "INTERNAL HARD DISK","CPU COPPER COOLER","CPU LIQUID COOLER", "SMPS-POWER SUPPLY", "RGB CABINET","ARGB CABINET", "MONITOR", "KEYBOARD & MOUSE", "UPS (POWER SUPPLY)", "SOUND SYSTEM", "WIFI USB ADAPTERS", "RGB & ARGB FAN", "DP & HDMI CABLE","32GB - PEN DRIVES","64GB - PEN DRIVES","EXTRA - PRODUCTS"];
+    let dlrs = ["SUNTRONIC SYSTEM", "SUNTRONIC INFOTECH", "SUPREME INFOTRADE", "MANINDRA INFOTECH", "GIRI COMPUTER","( PC HUB 24-25 ) Stock"];
 
     let myChart, currentFilter = "All", searchQuery = "", fileBase64 = "";
 
@@ -371,124 +1188,210 @@
         setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 20);
     }
 
-    // ডাটা রিলোড করার জন্য
-    async function fetchFromGoogle() {
-        showLoader();
-        try {
-            const response = await fetch(URL_DELETE); 
-            const data = await response.json();
-            if (data && data.length > 0) {
-                stock = data.map(i => ({
-                    id: i.id, name: i.name, cat: i.category, dealer: i.dealer,
-                    buy: parseFloat(i.buy) || 0, margin: parseFloat(i.margin) || 5, 
-                    sell: parseFloat(i.sell) || 0, date: i.date, 
-                    serial: i.serial, img: i.image
-                }));
-            }
-        } catch (e) { console.error("Fetch Error:", e); }
+ // ১. Firebase থেকে ডাটা রিয়েল-টাইম পড়ার ফাংশন আপডেট
+function syncFromFirebase() {
+    showLoader();
+    db.ref('products').on('value', (snapshot) => {
+        const data = snapshot.val();
+        stock = []; 
+
+        if (data) {
+            Object.keys(data).forEach(key => {
+                const item = data[key];
+                stock.push({
+                    id: key, 
+                    name: item.name,
+                    cat: item.cat,
+                    dealer: item.dealer,
+                    buy: parseFloat(item.buy) || 0,
+                    onlinePrice: parseFloat(item.onlinePrice) || 0, // এটি যোগ করা হয়েছে
+                    margin: parseFloat(item.margin) || 5,
+                    sell: parseFloat(item.sell) || 0,
+                    date: item.date,
+                    serial: item.serial,
+                    img: item.img
+                });
+            });
+            stock.reverse(); 
+        }
+
         hideLoader();
-        updateInterface();
+        updateInterface(); 
+    });
+}
+
+
+
+   async function addItem() {
+    const name = document.getElementById('pName').value;
+    const buy = parseFloat(document.getElementById('pBuy').value) || 0;
+    const margin = parseFloat(document.getElementById('pMargin').value) || 5;
+    const sell = buy + (buy * margin / 100);
+    const cat = document.getElementById('pCat').value;
+    const dealer = document.getElementById('pDealer').value;
+    const onlinePrice = document.getElementById('pOnlinePrice').value || 0;
+    const serial = document.getElementById('pSerial').value || "N/A";
+    const date = document.getElementById('pDate').value || new Date().toISOString().split('T')[0];
+    const img = document.getElementById('pImgUrl').value || "";
+
+    if(!name || !buy) { 
+        alert("দয়া করে নাম এবং ক্রয়মূল্য লিখুন"); 
+        return; 
     }
 
-    // ১. ১০ গুণ দ্রুত পণ্য যোগ করার ফাংশন
-    async function addItem() {
-        const name = document.getElementById('pName').value;
-        const buy = parseFloat(document.getElementById('pBuy').value) || 0;
-        if(!name) { alert("পণ্যর নাম লিখুন"); return; }
-        
-        const now = new Date();
-        const dateVal = document.getElementById('pDate').value || now.toISOString().split('T')[0];
-        const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-        const fullDateTime = `${dateVal} ${timeString}`;
-
-        const newItem = { 
-            action: 'ADD',
-            id: Date.now(), 
-            name: name,
-            cat: document.getElementById('pCat').value, 
-            dealer: document.getElementById('pDealer').value, 
-            buy: buy, margin: 5, sell: buy * 1.05, 
-            date: fullDateTime, 
-            serial: document.getElementById('pSerial').value || "", 
-            img: document.getElementById('pImgUrl').value || fileBase64 || "" 
-        };
-
-        // --- FAST UPDATE ---
-        stock.unshift(newItem); // সার্ভারের আগে লোকাল লিস্টে অ্যাড
-        render(); // সাথে সাথে টেবিল আপডেট
-        resetForm(); // ফর্ম ক্লিয়ার
-
-        // ব্যাকগ্রাউন্ডে সেভ (ইউজারকে ওয়েট করাবে না)
-        try {
-            fetch(URL_PERMANENT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newItem) });
-            fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newItem) });
-        } catch (e) { console.error("Background Save Error:", e); }
-    }
-
-    // ২. ১০ গুণ দ্রুত এডিট সেভ করার ফাংশন
-    async function saveEdit() {
-    const id = parseInt(document.getElementById('editId').value);
-    const index = stock.findIndex(s => s.id === id);
-    if (index === -1) return; // প্রোডাক্ট খুঁজে না পেলে ফিরে যাবে
-
-    const buy = parseFloat(document.getElementById('editBuy').value) || 0;
-    const margin = parseFloat(document.getElementById('editMargin').value) || 0;
-
-    const updatedData = {
-        action: 'UPDATE', 
-        id: id, 
-        name: document.getElementById('editName').value,
-        cat: document.getElementById('editCat').value, 
-        dealer: document.getElementById('editDlr').value,
-        buy: buy, 
-        margin: margin, 
-        sell: buy + (buy * margin / 100),
-        serial: document.getElementById('editSerial').value, 
-        // ডেট পরিবর্তন না করে আগের অরিজিনাল ডেটটি রাখা হলো
-        date: stock[index].date, 
-        img: document.getElementById('editImg').value.trim() || stock[index].img
+    const newItem = {
+        name, buy, margin, sell, cat, dealer, onlinePrice, serial, date, img
     };
 
-    // --- FAST UPDATE: লোকাল ডাটা সাথে সাথে আপডেট ---
-    stock[index] = updatedData;
-    render();
-    closeEdit();
+    showLoader(); // প্রসেসিং শুরু হলে লোডার দেখাবে
 
-    // ব্যাকগ্রাউন্ডে গুগল শিটে সেভ (ইউজারকে ওয়েট করাবে না)
     try {
-        // পুরনো ডাটা ডিলিট এবং নতুন ডাটা অ্যাড করার রিকোয়েস্ট
-        fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'DELETE', id: id }) });
-        fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(updatedData) });
-    } catch (e) { 
-        console.error("Update Error:", e); 
+        // --- ধাপ ১: Firebase-এ পুশ করা (লাইভ ড্যাশবোর্ডের জন্য) ---
+        await db.ref('products').push(newItem);
+        console.log("Syncing with Firebase: Success");
+
+        // --- ধাপ ২: Google Sheet-এ পাঠানো (পার্মানেন্ট সেভ) ---
+        // URL_PERMANENT আপনার Google Apps Script এর URL হতে হবে
+        fetch(URL_PERMANENT, {
+            method: "POST",
+            mode: "no-cors", // CORS ইস্যু এড়াতে
+            cache: "no-cache",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newItem)
+        })
+        .then(() => console.log("Permanent backup in Google Sheet: Success"))
+        .catch(err => console.error("Google Sheet Backup Failed: ", err));
+
+        alert("Stock Updated & Saved to Google Sheet! ✅");
+        resetForm(); // ফর্ম রিসেট করা
+        
+    } catch (error) {
+        console.error("Error adding product:", error);
+        alert("Firebase update failed!");
+    } finally {
+        hideLoader(); // কাজ শেষ হলে লোডার বন্ধ করা
     }
 }
 
-    // ৩. ১০ গুণ দ্রুত ডিলিট করার ফাংশন
-    async function triggerDelete(id) {
-        if(!confirm("Are you sure? This will remove the item instantly.")) return;
-        
-        // --- FAST UPDATE ---
-        stock = stock.filter(s => s.id !== id);
-        render();
 
-        // ব্যাকগ্রাউন্ডে ডিলিট
+
+// ফরম রিসেট করার ফাংশন (নিশ্চিত করুন এটি আছে)
+function resetForm() {
+    // সব ইনপুট ক্লিয়ার করা
+    document.getElementById('pName').value = "";
+    document.getElementById('pBuy').value = "";
+    document.getElementById('pMargin').value = "5"; // ডিফল্ট ৫% রাখা
+    document.getElementById('pOnlinePrice').value = "";
+    document.getElementById('pSerial').value = "";
+    document.getElementById('pImgUrl').value = "";
+    document.getElementById('pDate').value = "";
+
+    // লাইভ টোটাল ডিসপ্লে রিসেট করা
+    const display = document.getElementById('pTotalDisplay');
+    if(display) display.innerText = "₹0";
+}
+
+// ১. Firebase থেকে ডাটা সিঙ্ক করার ফাংশন
+// আপনার স্ক্রিপ্ট এর একদম নিচের দিকে এটি বসান
+
+function syncData() {
+    db.ref('products').on('value', (snapshot) => {
+        const data = snapshot.val();
+        stock = []; // এটি নিশ্চিত করে প্রতিবার ফ্রেশ ডাটা লোড হচ্ছে
+        if (data) {
+            Object.keys(data).forEach(key => {
+                stock.push({ id: key, ...data[key] });
+            });
+            stock.reverse();
+        }
+        updateInterface();
+    });
+}
+
+// ৫. পেজ লোড হওয়ার সময় সিঙ্ক চালু করা
+window.onload = syncData;
+
+// ২. উইন্ডো লোড হওয়ার সময় এই ফাংশনটি কল করুন
+window.onload = syncData;
+
+    // ২. ১০ গুণ দ্রুত এডিট সেভ করার ফাংশন
+   async function saveEdit() {
+    const id = document.getElementById('editId').value;
+    showLoader();
+
+    try {
+        const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+        const margin = parseFloat(document.getElementById('editMargin').value) || 5;
+
+        const updatedData = {
+            name: document.getElementById('editName').value,
+            cat: document.getElementById('editCat').value,
+            dealer: document.getElementById('editDlr').value,
+            buy: buy,
+            margin: margin,
+            sell: buy + (buy * margin / 100),
+            serial: document.getElementById('editSerial').value,
+            img: document.getElementById('editImg').value,
+            date: new Date().toLocaleString() // আপডেটের সময় রেকর্ড রাখা
+        };
+
+        // Firebase-এ ডাটা আপডেট করা
+        await db.ref('products/' + id).update(updatedData);
+
+        closeEdit();
+        alert("Product Updated Successfully! ✨");
+    } catch (error) {
+        console.error("Update Error:", error);
+    } finally {
+        hideLoader();
+    }
+}
+
+let deleteIdPending = null;
+
+// ডিলিট বাটন চাপলে এটি কাজ করবে
+function triggerDelete(id) {
+    deleteIdPending = id; // আইডিটি মনে রাখবে
+    document.getElementById('neonConfirmModal').style.display = 'flex'; // পপ-আপ দেখাবে
+}
+
+// 'Yes, Delete' বাটনে ক্লিক করলে যা হবে
+document.getElementById('confirmDeleteBtn').onclick = async function() {
+    if (deleteIdPending) {
+        closeNeonModal();
+        showLoader();
         try {
-            fetch(URL_DELETE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'DELETE', id: id }) });
-        } catch (e) { console.error(e); }
+            await db.ref('products/' + deleteIdPending).remove();
+            // একটি সুন্দর নোটিফিকেশন দেখাতে পারেন
+        } catch (error) {
+            console.error(error);
+        } finally {
+            hideLoader();
+            deleteIdPending = null;
+        }
     }
+};
 
+function closeNeonModal() {
+    document.getElementById('neonConfirmModal').style.display = 'none';
+}
     function resetForm() {
-        document.getElementById('pName').value = ""; 
-        document.getElementById('pBuy').value = "";
-        document.getElementById('pSerial').value = "";
-        document.getElementById('pImgUrl').value = "";
-        document.getElementById('fileIn').value = "";
-        document.getElementById('fileTxt').innerText = "Upload Product Image";
-        fileBase64 = "";
+    document.getElementById('pName').value = "";
+    document.getElementById('pBuy').value = "";
+    document.getElementById('pMargin').value = "5"; // ডিফল্ট ৫% এ ফিরিয়ে আনা
+    document.getElementById('pOnlinePrice').value = ""; // অনলাইন প্রাইস ক্লিয়ার
+    document.getElementById('pSerial').value = "";
+    document.getElementById('pImgUrl').value = "";
+    document.getElementById('pDate').value = "";
+    
+    // টোটাল ডিসপ্লে বক্সটি শূন্য করে দেওয়া
+    const totalDisplay = document.getElementById('pTotalDisplay');
+    if (totalDisplay) {
+        totalDisplay.innerText = "₹0";
     }
+}
 
-    function render() {
+   function render() {
     const body = document.getElementById('tableBody'); body.innerHTML = '';
     let inv = 0;
     const filtered = stock.filter(i => (currentFilter === 'All' || i.cat === currentFilter) && (String(i.name).toLowerCase().includes(searchQuery.toLowerCase()) || String(i.serial).toLowerCase().includes(searchQuery.toLowerCase())));
@@ -496,44 +1399,167 @@
     filtered.forEach(i => {
         inv += (parseFloat(i.buy) || 0);
         const imgSrc = i.img || 'https://via.placeholder.com/45';
-        
-        // ১. আগে প্রফিট ক্যালকুলেট করে নিচ্ছি
         const profitAmount = (parseFloat(i.sell) || 0) - (parseFloat(i.buy) || 0);
+// PIP-TAG ভ্যালু তৈরি (₹ চিহ্ন ছাড়া শুধু সংখ্যা)
+    const pipValue = `PIP-${Math.round(i.buy)}`;
 
         body.innerHTML += `<tr>
-            <td>
-                <div class="p-img-wrapper">
-                    <img src="${imgSrc}" class="product-img" ondblclick="openImgModal('${imgSrc}')">
+        <td>
+            <div class="product-details-container" style="display: flex; align-items: center; gap: 14px;">
+                <div class="p-img-wrapper" style="width: 45px; height: 45px; flex-shrink: 0; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img src="${imgSrc}" class="product-img" ondblclick="openImgModal('${imgSrc}')" style="width: 100%; height: 100%; object-fit: cover; transition: 0.3s;">
                 </div>
-                <span style="margin-left:15px; font-weight:600;">${i.name}</span>
-            </td>
-            <td><span style="color:var(--neon-blue); background:rgba(71,225,255,0.05); padding:4px 10px; border-radius:20px; font-size:11px;">${i.cat}</span></td>
-            <td style="font-size:11px; color:#948fb1">${i.dealer}</td>
-            <td><span class="price-tag">₹${i.buy}</span></td>
-            <td style="color:var(--neon-pink); font-weight:700">₹${Math.round(i.sell)}</td>
-            
-            <td style="color: #948fb1; font-weight: 400; font-size: 13px;">NP ${Math.round(profitAmount)}</td>
-            
-            <td style="font-size:11px; white-space:nowrap;">${formatDateTime(i.date)}</td>
-            <td style="font-family:monospace; color:var(--neon-blue)">${i.serial || 'N/A'}</td>
-            <td><div class="action-btns"><button class="icon-btn btn-edit" onclick="openEdit(${i.id})">✎</button><button class="icon-btn btn-del" onclick="triggerDelete(${i.id})">✖</button></div></td>
-        </tr>`;
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span class="product-name" style="color: #f0f0f0; font-size: 12.5px; font-weight: 600; letter-spacing: 0.3px; line-height: 1.3;">${i.name}</span>
+                    <span class="product-sku" style="color: #6b7280; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">SERIAL: ${i.serial || 'N/A'}</span>
+                </div>
+            </div>
+        </td>
+<td style="vertical-align: middle; text-align: center;">
+    <span style="color:var(--neon-blue); 
+                 background:rgba(71,225,255,0.08); 
+                 border: 1px solid rgba(71, 225, 255, 0.2); 
+                 padding: 4px 12px; 
+                 border-radius: 6px; 
+                 font-size: 10px; 
+                 font-weight: 400; /* এখানে 600 থেকে কমিয়ে 400 (Normal) করা হয়েছে */
+                 text-transform: uppercase; 
+                 white-space: nowrap; 
+                 display: inline-flex; 
+                 align-items: center; 
+                 justify-content: center; 
+                 min-width: 120px;">
+        ${i.cat}
+    </span>
+</td>
+        <td style="font-size:11px; color:#948fb1; font-weight:400;">${i.dealer}</td>
+
+<td style="vertical-align: middle;">
+    <div class="pip-tag-container" style="display: inline-flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(148, 143, 177, 0.2); color: #948fb1; padding: 5px 11px; border-radius: 6px; font-size: 11px; font-weight: 600; min-width: 85px; letter-spacing: 0.5px; transition: 0.3s; filter: blur(5px);" onmouseover="this.style.filter='blur(0)'" onmouseout="this.style.filter='blur(5px)'">
+        PI-${Math.round(i.buy)}
+    </div>
+</td>
+
+        <td style="color:var(--neon-green); font-weight:700; font-size:13px;">₹${Math.round(i.sell)}</td>
+        <td style="color: #47e1ff; font-weight: 700; font-size:13px;">₹${i.onlinePrice || 0}</td>
+<td style="vertical-align: middle;">
+    <div style="display: inline-flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(148, 143, 177, 0.2); color: #948fb1; padding: 5px 12px; border-radius: 6px; font-size: 10px; font-weight: 600; min-width: 90px; letter-spacing: 0.5px;">
+        NP-${Math.round(profitAmount)}
+    </div>
+</td>        <td style="font-size:11px; color: #948fb1; white-space:nowrap;">${formatDateTime(i.date)}</td>
+        <td style="font-family: 'JetBrains Mono', monospace; color:var(--neon-blue); font-size:12px;">${i.serial || '---'}</td>
+        <td>
+            <div class="action-btns" style="display: flex; gap: 12px;">
+                <button class="icon-btn btn-edit" onclick="openEdit('${i.id}')" style="color: #60a5fa; background: none; border: none; cursor: pointer; font-size: 16px;">✎</button>
+                <button class="icon-btn btn-del" onclick="triggerDelete('${i.id}')" style="color: #f87171; background: none; border: none; cursor: pointer; font-size: 16px;">✖</button>
+            </div>
+        </td>
+    </tr>`;
+});
+
+    // বাকি স্ট্যাটাস আপডেট কোড...
+    document.getElementById('tQty').innerText = filtered.length;
+    document.getElementById('tInv').innerText = '₹' + inv.toLocaleString();
+    document.getElementById('tGst').innerText = '₹' + (inv * 0.18).toLocaleString();
+    document.getElementById('tProfit').innerText = '₹' + (inv * 0.05).toLocaleString();
+    
+    const dataMap = {}; stock.forEach(i => dataMap[i.cat] = (dataMap[i.cat] || 0) + 1);
+    drawChart(dataMap);
+}
+
+
+
+
+
+function drawChart(data) {
+    const ctx = document.getElementById('roundChart').getContext('2d');
+    if(myChart) myChart.destroy();
+
+    const fillGradient = ctx.createLinearGradient(0, 0, 0, 400);
+    fillGradient.addColorStop(0, 'rgba(71, 225, 255, 0.3)'); 
+    fillGradient.addColorStop(1, 'rgba(188, 71, 255, 0)');   
+
+    myChart = new Chart(ctx, {
+        type: 'line', 
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                label: 'Stock Count',
+                data: Object.values(data),
+                borderColor: '#47e1ff', 
+                borderWidth: 3,
+                pointBackgroundColor: '#bc47ff', 
+                pointBorderColor: '#fff',
+                pointHoverRadius: 7,
+                tension: 0.4, 
+                fill: true,
+                backgroundColor: fillGradient, 
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                // টাইটেলটি চার্টের নিচে দেখানোর জন্য পজিশন 'bottom' করা হলো
+                title: {
+                    display: true,
+                    text: '📊 Product Stock Items Chart : STUDIO LINE INDIA & PC HUB',
+                    position: 'bottom', // লেখাটি নিচে চলে যাবে
+                    color: '#47e1ff',
+                    font: {
+                        size: 14,
+                        family: 'Poppins',
+                        weight: '300'
+                    },
+                    padding: { top: 20 }
+                }
+            },
+            scales: {
+                x: {
+                    // নিচের বাঁকানো লেবেলগুলো বন্ধ করা হলো
+                    display: false, 
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#948fb1' }
+                }
+            },
+            elements: {
+                line: {
+                    shadowBlur: 10,
+                    shadowColor: 'rgba(71, 225, 255, 0.5)',
+                    shadowOffsetX: 0,
+                    shadowOffsetY: 4
+                }
+            }
+        }
     });
+}
 
-        document.getElementById('tQty').innerText = filtered.length;
-        document.getElementById('tInv').innerText = '₹' + inv.toLocaleString();
-        document.getElementById('tGst').innerText = '₹' + (inv * 0.18).toLocaleString();
-        document.getElementById('tProfit').innerText = '₹' + (inv * 0.05).toLocaleString();
-        
-        const dataMap = {}; stock.forEach(i => dataMap[i.cat] = (dataMap[i.cat] || 0) + 1);
-        drawChart(dataMap);
-    }
 
-    function drawChart(data) {
-        const ctx = document.getElementById('roundChart').getContext('2d');
-        if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, { type: 'polarArea', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#bc47ff', '#47e1ff', '#ff47bc', '#39ff14'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#948fb1', font: { size: 10 } } } }, scales: { r: { display: false } } } });
-    }
+
+
+function fetchFromGoogle() {
+    // আপনার দেওয়া Firebase লিঙ্কটি এখানে দেওয়া হয়েছে
+    const firebaseURL = "https://console.firebase.google.com/u/0/project/inventory-glow/database/inventory-glow-default-rtdb/data?fb_gclid=CjwKCAiAybfLBhAjEiwAI0mBBmPGL9yt7tP-8dcB-2PYxtuDLSykaKAXWTY1BYpWYU4pNqs7Vb15lRoCfRYQAvD_BwE&fb_utm_campaign=Cloud-SS-DR-Firebase-FY26-global-gsem-1713590&fb_utm_content=text-ad&fb_utm_medium=cpc&fb_utm_source=google&fb_utm_term=KW_firebase";
+    
+    // নতুন ট্যাবে লিঙ্কটি ওপেন করার জন্য
+    window.open(firebaseURL, '_blank');
+}
+
+
+
+function fetchFromGoogle2() {
+    // এখানে আপনার Google Sheet-এর URL-টি বসান
+    const googleSheetURL = "https://docs.google.com/spreadsheets/d/1-kKKjzoNYVyIHrTWT7tXF-0pZnd0y5_lOAbydtU0ito/edit?gid=0#gid=0";
+    
+    // নতুন ট্যাবে শিটটি ওপেন হবে
+    window.open(googleSheetURL, '_blank');
+}
+
 
     function updateInterface() {
         document.getElementById('pCat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -562,20 +1588,21 @@
     function closeImgModal() { document.getElementById('imgModal').style.display = "none"; }
 
     function openEdit(id) {
-        const item = stock.find(s => s.id === id);
-        if (!item) return;
-        document.getElementById('editId').value = item.id;
-        document.getElementById('editName').value = item.name;
-        document.getElementById('editCat').value = item.cat;
-        document.getElementById('editDlr').value = item.dealer;
-        document.getElementById('editBuy').value = item.buy;
-        document.getElementById('editMargin').value = item.margin || 5;
-        document.getElementById('editSerial').value = item.serial;
-        document.getElementById('editDate').value = String(item.date).split('T')[0];
-        document.getElementById('editImg').value = item.img || "";
-        calcEditSale();
-        document.getElementById('editModal').style.display = 'flex';
-    }
+    const item = stock.find(s => s.id === id);
+    if (!item) return;
+
+    document.getElementById('editId').value = id; // Firebase Key
+    document.getElementById('editName').value = item.name;
+    document.getElementById('editCat').value = item.cat;
+    document.getElementById('editDlr').value = item.dealer;
+    document.getElementById('editBuy').value = item.buy;
+    document.getElementById('editMargin').value = item.margin || 5;
+    document.getElementById('editSerial').value = item.serial;
+    document.getElementById('editImg').value = item.img || "";
+    
+    calcEditSale();
+    document.getElementById('editModal').style.display = 'flex';
+}
 
     function calcEditSale() {
         const buy = parseFloat(document.getElementById('editBuy').value) || 0;
@@ -585,20 +1612,41 @@
         document.getElementById('displayTotal').innerText = Math.round(buy + profit) + "";
     }
 
-    function triggerActionModal(action, type) {
-        const input = document.getElementById('modalInput');
-        if(action === 'add') {
-            document.getElementById('modalTitle').innerText = "Add Item";
-            input.style.display = "block"; input.value = "";
-            document.getElementById('modalConfirmBtn').onclick = () => { 
-                if(input.value) { 
-                    if(type === 'cat') cats.push(input.value); else dlrs.push(input.value); 
-                    updateInterface(); closeModal(); 
-                } 
-            };
-        }
-        document.getElementById('reusableModal').style.display = 'flex';
+function triggerActionModal(action, type) {
+    const input = document.getElementById('modalInput');
+    const title = document.getElementById('modalTitle');
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+    
+    // ইনপুট বক্স প্রদর্শন করা
+    input.style.display = "block"; 
+    input.value = "";
+    
+    if(action === 'add') {
+        title.innerText = type === 'cat' ? "Add New Category" : "Add New Dealer";
+        confirmBtn.onclick = () => { 
+            if(input.value.trim()) { 
+                if(type === 'cat') cats.push(input.value.trim()); 
+                else dlrs.push(input.value.trim()); 
+                updateInterface(); 
+                closeModal(); 
+            } else {
+                alert("Please type something!");
+            }
+        };
+    } else if(action === 'rem') {
+        title.innerText = type === 'cat' ? "Remove Category" : "Remove Dealer";
+        input.style.display = "none"; // ডিলিট করার সময় ইনপুট বক্স লাগবে না
+        const currentVal = type === 'cat' ? document.getElementById('pCat').value : document.getElementById('pDealer').value;
+        
+        confirmBtn.onclick = () => {
+            if(type === 'cat') cats = cats.filter(c => c !== currentVal);
+            else dlrs = dlrs.filter(d => d !== currentVal);
+            updateInterface();
+            closeModal();
+        };
     }
+    document.getElementById('reusableModal').style.display = 'flex';
+}
 
     function handleFile(input) { 
         const reader = new FileReader(); 
@@ -620,7 +1668,7 @@
         XLSX.writeFile(wb, "Report.xlsx"); 
     }
 
-    window.onload = fetchFromGoogle;
+    window.onload = syncFromFirebase;
 </script>
 </body>
 </html>
