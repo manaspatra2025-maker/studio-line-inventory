@@ -109,10 +109,6 @@
             100% { transform: rotate(360deg); }
         }
 
-
-
-
-
 /* ক্যাটাগরি টেক্সট যাতে না ভেঙে যায় তার সমাধান */
 .nav-link, 
 #sidebarCats li, 
@@ -717,51 +713,6 @@ select:focus {
 
 
 
-
-
-<style>
-    /* Add this to your CSS file */
-    .header-top {
-        display: flex;
-        align-items: center;
-        gap: 10px; /* Space between buttons */
-        padding: 15px;
-        background-color: #f8f9fa;
-        flex-wrap: wrap; /* Allows buttons to wrap on mobile screens */
-    }
-
-    .search-box {
-        flex-grow: 1; /* Makes the search bar take up available space */
-        min-width: 200px;
-    }
-
-    .search-box input {
-        width: 100%;
-        padding: 8px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-    }
-
-    button {
-        padding: 8px 12px;
-        border-radius: 4px;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        white-space: nowrap; /* Prevents text from breaking into two lines */
-    }
-
-
-
-
-
-
-
-
-
-
 /* জুম ইন এনিমেশন */
 @keyframes zoomIn {
     from { transform: scale(0.5); opacity: 0; }
@@ -900,7 +851,7 @@ select:focus {
         </div>
         <input type="number" id="editBuy" placeholder="Buy Price" oninput="calcEditSale()">
         <div style="margin-bottom: 12px;">
-            <label style="font-size: 25px; color: #ffffff; margin-bottom: 5px; display: block;">Total Profit Percentage %</label>
+            <label style="font-size: 15px; color: #948fb1; margin-bottom: 5px; display: block;">Total Profit Percentage %</label>
             <input type="number" id="editMargin" min="0" max="100" placeholder="30" oninput="calcEditSale()">
         </div>
         <div class="edit-grid" style="margin-bottom: 15px;">
@@ -948,11 +899,9 @@ select:focus {
 <button class="btn-gst" onclick="openGstCalculator()">
     <span>📊</span> GST Calculator
 </button>
-        <button class="btn-refresh" onclick="fetchFromGoogle2()">Home Invest</button>
-        <button class="btn-Open" onclick="fetchFromGoogle2()">Khatabook</button>
-        <button class="btn-refresh" onclick="fetchFromGoogle()">Open Firebase</button>
-        <button class="btn-Open" onclick="fetchFromGoogle2()">Open Excel</button>
         <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
+        <button class="btn-refresh" onclick="fetchFromGoogle()">Open Firebase</button>
+<button class="btn-Open" onclick="fetchFromGoogle()">Open Excel</button>
     </div>
 
     <div class="stats-grid">
@@ -1075,7 +1024,7 @@ select:focus {
             <tr>
                 <th style="text-align: left; padding-left: 20px;">Details</th>
                 <th style="text-align: center;">Category</th>
-                <th style="text-align: Left;">Dealer</th>
+                <th style="text-align: left;">Dealer</th>
                 <th style="text-align: center;">PIP-TAG</th>
                 <th style="text-align: center;">Buy Price</th>
                 <th style="text-align: center;">Web Price</th>
@@ -1444,7 +1393,7 @@ function closeNeonModal() {
     </div>
 </td>
 
-        <td style="color:var(--text-white); font-weight:normal; font-weight:550; font-size:17px;">₹&nbsp;${Math.round(i.sell)}</td>
+<td style="color:var(--text-white); font-weight:normal; font-weight:550; font-size:17px;">₹&nbsp;${Math.round(i.sell)}</td>
         <td style="color: #47e1ff; font-weight: 500; font-size:14px;">₹&nbsp;${i.onlinePrice || 0}</td>
 <td style="vertical-align: middle;">
     <div style="display: inline-flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(148, 143, 177, 0.2); color: #948fb1; padding: 5px 12px; border-radius: 6px; font-size: 10px; font-weight: 600; min-width: 90px; letter-spacing: 0.5px;">
@@ -1556,7 +1505,7 @@ function fetchFromGoogle() {
 
 
 
-function fetchFromGoogle2() {
+function fetchFromGoogle() {
     // এখানে আপনার Google Sheet-এর URL-টি বসান
     const googleSheetURL = "https://docs.google.com/spreadsheets/d/1-kKKjzoNYVyIHrTWT7tXF-0pZnd0y5_lOAbydtU0ito/edit?gid=0#gid=0";
     
@@ -1676,5 +1625,3 @@ function triggerActionModal(action, type) {
 </script>
 </body>
 </html>
-
-
