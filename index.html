@@ -713,45 +713,6 @@ select:focus {
 
 
 
-
-
-
-    .button-container {
-    display: flex;
-    align-items: center; /* Button gulo vertically center thakbe */
-    justify-content: flex-start; /* Bam dik theke shuru hobe */
-    gap: 15px; /* Protiti button-er majhkhaner durotto */
-    flex-wrap: wrap; /* Screen chhoto hole button-gulo niche neme ashbe */
-    padding: 20px;
-    background-color: #0b0e14; /* Apnar dark theme-er sathe mil rekhe */
-}
-
-.button {
-    display: inline-flex;
-    align-items: center;
-    padding: 10px 20px;
-    border-radius: 50px; /* Pill shape-er jonno */
-    border: 2px solid transparent;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-/* Glowing Border Effect (Example) */
-.btn-gst { border-color: #00d2ff; box-shadow: 0 0 10px rgba(0, 210, 255, 0.5); }
-.btn-home { border-color: #ffb400; box-shadow: 0 0 10px rgba(255, 180, 0, 0.5); }
-
-
-
-
-
-
-
-
-
-
-        
-
 /* জুম ইন এনিমেশন */
 @keyframes zoomIn {
     from { transform: scale(0.5); opacity: 0; }
@@ -938,8 +899,8 @@ select:focus {
 <button class="btn-gst" onclick="openGstCalculator()">
     <span>📊</span> GST Calculator
 </button>
-        <button class="btn-refresh" onclick="fetchFromGoogle3()">Home Invest</button>
-        <button class="btn-Open" onclick="fetchFromGoogle4()">Khatabook</button>
+        <button class="btn-refresh" onclick="fetchFromGoogle2()">Home Invest</button>
+        <button class="btn-Open" onclick="fetchFromGoogle2()">Khatabook</button>
         <button class="btn-refresh" onclick="fetchFromGoogle()">Open Firebase</button>
         <button class="btn-Open" onclick="fetchFromGoogle2()">Open Excel</button>
         <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
@@ -1225,7 +1186,7 @@ function syncFromFirebase() {
     const dealer = document.getElementById('pDealer').value;
     const onlinePrice = document.getElementById('pOnlinePrice').value || 0;
     const serial = document.getElementById('pSerial').value || "N/A";
-    const date = document.getElementById('pDate').value || new Date().toISOString().split('T')[0];
+    const date = new Date().toString(); // এটি সিস্টেমের বর্তমান সময় হুবহু নেবে
     const img = document.getElementById('pImgUrl').value || "";
 
     if(!name || !buy) { 
@@ -1266,6 +1227,25 @@ function syncFromFirebase() {
         hideLoader(); // কাজ শেষ হলে লোডার বন্ধ করা
     }
 }
+
+function formatDateTime(dateStr) {
+    if (!dateStr) return "N/A";
+    const date = new Date(dateStr);
+    
+    // সঠিক দিন, মাস, বছর বের করা
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    // ১২ ঘণ্টার ফরম্যাটে সময় বের করা
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    
+    return `${day}-${month}-${year} ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+}
+
 
 
 
@@ -1546,7 +1526,7 @@ function fetchFromGoogle() {
 
 
 
-function fetchFromGoogle2() {
+function fetchFromGoogle() {
     // এখানে আপনার Google Sheet-এর URL-টি বসান
     const googleSheetURL = "https://docs.google.com/spreadsheets/d/1-kKKjzoNYVyIHrTWT7tXF-0pZnd0y5_lOAbydtU0ito/edit?gid=0#gid=0";
     
@@ -1666,8 +1646,3 @@ function triggerActionModal(action, type) {
 </script>
 </body>
 </html>
-
-
-
-
-
