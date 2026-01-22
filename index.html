@@ -896,11 +896,12 @@ select:focus {
     <div class="header-top">
         <div class="search-box"><input type="text" id="searchInput" placeholder="Search product..." onkeyup="handleSearch()"></div>
         <datalist id="productSuggestions"></datalist>
+                <button class="btn-Open" onclick="fetchFromGoogle4()">CALCULATOR</button>
 <button class="btn-gst" onclick="openGstCalculator()">
     <span>📊</span> GST Calculator
 </button>
+
         <button class="btn-refresh" onclick="fetchFromGoogle3()">Home Invest</button>
-        <button class="btn-Open" onclick="fetchFromGoogle4()">Khatabook</button>
         <button class="btn-refresh" onclick="fetchFromGoogle()">Open Firebase</button>
         <button class="btn-Open" onclick="fetchFromGoogle2()">Open Excel</button>
         <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
@@ -953,6 +954,56 @@ select:focus {
         </div>
     </div>
 </div>
+
+
+
+
+
+
+
+<div id="khatabookModal" class="modal-overlay">
+    <div class="gst-modal-content" style="width: 340px; padding: 25px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(71, 225, 255, 0.2); background: #0b0e1a;">
+        <h3 style="text-align:left; color:var(--neon-blue); font-size: 14px; margin-bottom: 20px; letter-spacing: 1px; font-weight: 700;">📘 SLI SMART CALCULATOR</h3>
+        
+        <div id="calcDisplay" style="background: rgba(255, 255, 255, 0.03); padding: 25px; text-align: right; font-size: 30px; font-weight: 700; color: #fff; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(71, 225, 255, 0.1); min-height: 85px; word-break: break-all; text-shadow: 0 0 10px rgba(71, 225, 255, 0.3);">0</div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+            <button class="gst-rate-btn" onclick="clearCalc()" style="grid-column: span 2; background: rgba(255, 95, 95, 0.1); border-color: var(--danger); color: var(--danger);">AC</button>
+            <button class="gst-rate-btn" onclick="delCalc()" style="border-color: #948fb1;">⌫</button>
+            <button class="gst-rate-btn" onclick="inputCalc('/')" style="border-color: var(--accent); color: var(--accent);">÷</button>
+            
+            <button class="gst-rate-btn" onclick="inputCalc('7')">7</button>
+            <button class="gst-rate-btn" onclick="inputCalc('8')">8</button>
+            <button class="gst-rate-btn" onclick="inputCalc('9')">9</button>
+            <button class="gst-rate-btn" onclick="inputCalc('*')" style="border-color: var(--accent); color: var(--accent);">×</button>
+            
+            <button class="gst-rate-btn" onclick="inputCalc('4')">4</button>
+            <button class="gst-rate-btn" onclick="inputCalc('5')">5</button>
+            <button class="gst-rate-btn" onclick="inputCalc('6')">6</button>
+            <button class="gst-rate-btn" onclick="inputCalc('-')" style="border-color: var(--accent); color: var(--accent);">-</button>
+            
+            <button class="gst-rate-btn" onclick="inputCalc('1')">1</button>
+            <button class="gst-rate-btn" onclick="inputCalc('2')">2</button>
+            <button class="gst-rate-btn" onclick="inputCalc('3')">3</button>
+            <button class="gst-rate-btn" onclick="inputCalc('+')" style="border-color: var(--accent); color: var(--accent);">+</button>
+            
+            <button class="gst-rate-btn" onclick="inputCalc('0')" style="grid-column: span 2;">0</button>
+            <button class="gst-rate-btn" onclick="inputCalc('.')">.</button>
+            <button class="gst-rate-btn" onclick="calculateResult()" style="background: var(--accent); color: white; border: none; box-shadow: 0 0 15px rgba(188, 71, 255, 0.4);">=</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="closeKhataModal()" style="flex:1; padding:12px; border-radius:10px; background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#948fb1; cursor:pointer; font-weight:600;">CLOSE</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
 
 
 
@@ -1040,6 +1091,8 @@ select:focus {
 </div>
 
 
+
+
 <script>
 
 
@@ -1077,6 +1130,123 @@ function resetGst() {
     document.getElementById('baseAmount').value = '';
     calculateGst();
 }
+
+
+
+
+
+
+// কিবোর্ড ইনপুট হ্যান্ডলার
+document.addEventListener('keydown', function(event) {
+    // শুধুমাত্র যখন ক্যালকুলেটর মোডালটি ওপেন থাকবে তখন কাজ করবে
+    const modal = document.getElementById('khatabookModal');
+    if (modal.style.display === 'flex') {
+        const key = event.key;
+
+        // নম্বর (0-9) এবং দশমিক চেক
+        if (!isNaN(key) || key === '.') {
+            inputCalc(key);
+        }
+        // গাণিতিক চিহ্ন চেক
+        else if (key === '+' || key === '-' || key === '*' || key === '/') {
+            inputCalc(key);
+        }
+        // Enter বাটন প্রেস করলে ফলাফল দেখাবে
+        else if (key === 'Enter') {
+            event.preventDefault(); // পেজ রিফ্রেশ হওয়া আটকাবে
+            calculateResult();
+        }
+        // Escape বাটন প্রেস করলে মোডাল বন্ধ হবে
+        else if (key === 'Escape') {
+            closeKhataModal();
+        }
+        // Backspace প্রেস করলে একটি সংখ্যা ডিলিট হবে
+        else if (key === 'Backspace') {
+            delCalc();
+        }
+        // Delete বা C প্রেস করলে অল ক্লিয়ার হবে
+        else if (key === 'c' || key === 'C' || key === 'Delete') {
+            clearCalc();
+        }
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+let calcExpression = "0";
+
+function fetchFromGoogle4() {
+    document.getElementById('khatabookModal').style.display = 'flex';
+    clearCalc();
+}
+
+function closeKhataModal() {
+    document.getElementById('khatabookModal').style.display = 'none';
+}
+
+function inputCalc(val) {
+    if (calcExpression === "0" && val !== ".") {
+        calcExpression = val;
+    } else {
+        calcExpression += val;
+    }
+    updateCalcDisplay();
+}
+
+function updateCalcDisplay() {
+    const display = document.getElementById('calcDisplay');
+    display.innerText = calcExpression;
+}
+
+function clearCalc() {
+    calcExpression = "0";
+    updateCalcDisplay();
+}
+
+function delCalc() {
+    calcExpression = calcExpression.toString().slice(0, -1);
+    if (calcExpression === "") calcExpression = "0";
+    updateCalcDisplay();
+}
+
+function calculateResult() {
+    try {
+        // গাণিতিক হিসাব সম্পন্ন করা
+        let result = eval(calcExpression);
+        // দশমিকের পর ২ ঘর রাখা (যদি থাকে)
+        calcExpression = Number.isInteger(result) ? result.toString() : result.toFixed(2).toString();
+        updateCalcDisplay();
+    } catch (e) {
+        document.getElementById('calcDisplay').innerText = "Error";
+        calcExpression = "0";
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1490,67 +1660,82 @@ function closeNeonModal() {
 
 function drawChart(data) {
     const ctx = document.getElementById('roundChart').getContext('2d');
-    if(myChart) myChart.destroy();
+    if (myChart) myChart.destroy();
 
-    const fillGradient = ctx.createLinearGradient(0, 0, 0, 400);
-    fillGradient.addColorStop(0, 'rgba(71, 225, 255, 0.3)'); 
-    fillGradient.addColorStop(1, 'rgba(188, 71, 255, 0)');   
+    const createNeonGradient = (color1, color2) => {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, color1);
+        gradient.addColorStop(1, color2);
+        return gradient;
+    };
+
+    const neonGradients = [
+        createNeonGradient('#bc47ff', 'rgba(188, 71, 255, 0.4)'), 
+        createNeonGradient('#47e1ff', 'rgba(71, 225, 255, 0.4)'), 
+        createNeonGradient('#ff47bc', 'rgba(255, 71, 188, 0.3)'), 
+        createNeonGradient('#39ff14', 'rgba(57, 255, 20, 0.3)'),  
+        createNeonGradient('#ffca28', 'rgba(255, 202, 40, 0.3)')  
+    ];
 
     myChart = new Chart(ctx, {
-        type: 'line', 
+        type: 'doughnut',
         data: {
             labels: Object.keys(data),
             datasets: [{
-                label: 'Stock Count',
                 data: Object.values(data),
-                borderColor: '#47e1ff', 
-                borderWidth: 3,
-                pointBackgroundColor: '#bc47ff', 
-                pointBorderColor: '#fff',
-                pointHoverRadius: 7,
-                tension: 0.4, 
-                fill: true,
-                backgroundColor: fillGradient, 
+                backgroundColor: neonGradients,
+                borderColor: '#11142b', 
+                borderWidth: 4,
+                hoverOffset: 20,
+                borderRadius: 5,
+                spacing: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '65%', 
             plugins: {
-                legend: { display: false },
-                // টাইটেলটি চার্টের নিচে দেখানোর জন্য পজিশন 'bottom' করা হলো
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: '#948fb1', // ডিফল্ট সাদা টেক্সট
+                        font: { size: 11, family: 'Poppins', weight: '500' },
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            return data.labels.map((label, i) => {
+                                const value = data.datasets[0].data[i];
+                                return {
+                                    // স্টকের অংশটি আলাদা করে বোঝাতে স্পেশাল সিম্বল ব্যবহার করা হয়েছে
+                                    text: `${label}  [ Stock _ ${value} PC ]`, 
+                                    fillStyle: data.datasets[0].backgroundColor[i],
+                                    strokeStyle: '#11142b',
+                                    lineWidth: 2,
+                                    index: i,
+                                    pointStyle: 'circle',
+                                    fontColor: '#948fb1', // নাম সাদা থাকবে
+                                };
+                            });
+                        }
+                    }
+                },
                 title: {
                     display: true,
-                    text: '📊 Product Stock Items Chart : STUDIO LINE INDIA & PC HUB',
-                    position: 'bottom', // লেখাটি নিচে চলে যাবে
+                    text: '💎 Product Stock Items Chart : STUDIO LINE INDIA & PC HUB',
+                    position: 'bottom',
+                    align: 'start',
                     color: '#47e1ff',
-                    font: {
-                        size: 14,
-                        family: 'Poppins',
-                        weight: '300'
-                    },
-                    padding: { top: 20 }
+                    font: { size: 12, weight: 'normal', family: 'Poppins' },
+                    padding: { top: 25 }
                 }
             },
-            scales: {
-                x: {
-                    // নিচের বাঁকানো লেবেলগুলো বন্ধ করা হলো
-                    display: false, 
-                    grid: { display: false }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                    ticks: { color: '#948fb1' }
-                }
-            },
-            elements: {
-                line: {
-                    shadowBlur: 10,
-                    shadowColor: 'rgba(71, 225, 255, 0.5)',
-                    shadowOffsetX: 0,
-                    shadowOffsetY: 4
-                }
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 2000
             }
         }
     });
