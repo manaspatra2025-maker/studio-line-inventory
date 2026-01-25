@@ -1627,7 +1627,7 @@ function closeNeonModal() {
     </div>
 </td>
 
-<td style="color:var(--text-white); font-weight:normal; font-weight:550; font-size:17px;">₹&nbsp;${Math.round(i.sell)}</td>
+<td style="color: #948fb1; font-weight:normal; font-weight:500; font-size:15px;">₹&nbsp;${Math.round(i.sell)}</td>
         <td style="color: #47e1ff; font-weight: 500; font-size:14px;">₹&nbsp;${i.onlinePrice || 0}</td>
 <td style="vertical-align: middle;">
     <div style="display: inline-flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(148, 143, 177, 0.2); color: #948fb1; padding: 5px 12px; border-radius: 6px; font-size: 10px; font-weight: 600; min-width: 90px; letter-spacing: 0.5px;">
@@ -1694,14 +1694,14 @@ function drawChart(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '65%', 
+            cutout: '50%', 
             plugins: {
                 legend: {
                     position: 'right',
                     labels: {
                         color: '#948fb1', // ডিফল্ট সাদা টেক্সট
-                        font: { size: 11, family: 'Poppins', weight: '500' },
-                        padding: 20,
+                        font: { size: 10, family: 'Poppins', weight: '400' },
+                        padding: 11,
                         usePointStyle: true,
                         pointStyle: 'circle',
                         generateLabels: function(chart) {
@@ -1713,7 +1713,7 @@ function drawChart(data) {
                                     text: `${label}  [ Stock _ ${value} PC ]`, 
                                     fillStyle: data.datasets[0].backgroundColor[i],
                                     strokeStyle: '#11142b',
-                                    lineWidth: 2,
+                                    lineWidth: 1,
                                     index: i,
                                     pointStyle: 'circle',
                                     fontColor: '#948fb1', // নাম সাদা থাকবে
@@ -1883,5 +1883,4 @@ function triggerActionModal(action, type) {
 </script>
 </body>
 </html>
-
 
