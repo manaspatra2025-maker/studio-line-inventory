@@ -901,7 +901,7 @@ select:focus {
     <span>📊</span> GST Calculator
 </button>
 
-        <button class="btn-refresh" onclick="fetchFromGoogle3()">Home Invest</button>
+        <button class="btn-refresh" onclick="fetchFromGoogle3()">Edius Certificate</button>
         <button class="btn-refresh" onclick="fetchFromGoogle()">Open Firebase</button>
         <button class="btn-Open" onclick="fetchFromGoogle2()">Open Excel</button>
         <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
@@ -1752,6 +1752,13 @@ function fetchFromGoogle() {
     window.open(firebaseURL, '_blank');
 }
 
+function fetchFromGoogle3() {
+    // এখানে আপনার Google Sheet-এর URL-টি বসান
+    const googleSheetURL = "https://manaspatra2025-maker.github.io/edius-certificate-system/";
+    
+    // নতুন ট্যাবে শিটটি ওপেন হবে
+    window.open(googleSheetURL, '_blank');
+}
 
 
 function fetchFromGoogle2() {
@@ -1883,4 +1890,3 @@ function triggerActionModal(action, type) {
 </script>
 </body>
 </html>
-
