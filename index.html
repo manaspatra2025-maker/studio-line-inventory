@@ -610,12 +610,12 @@ select:focus {
 
 /* সকল বাটনের জন্য ফিক্সড উইথ এবং সেম স্টাইল */
 .export-btn, .btn-refresh, .btn-Open, .btn-gst {
-    width: 180px; /* সব বাটন একই চওড়া হবে */
-    height: 45px; /* সব বাটন একই উচ্চতা হবে */
+    width: 155px; /* সব বাটন একই চওড়া হবে */
+    height: 40px; /* সব বাটন একই উচ্চতা হবে */
     padding: 0;   /* প্যাডিং রিসেট করা হলো যাতে সাইজ না বাড়ে */
-    border-radius: 30px;
+    border-radius: 25px;
     font-weight: 700;
-    font-size: 11px;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
     cursor: pointer;
@@ -894,17 +894,17 @@ select:focus {
 
 <div class="main-container">
     <div class="header-top">
-        <div class="search-box"><input type="text" id="searchInput" placeholder="Search product..." onkeyup="handleSearch()"></div>
-        <datalist id="productSuggestions"></datalist>
-                <button class="btn-Open" onclick="fetchFromGoogle4()">CALCULATOR</button>
-<button class="btn-gst" onclick="openGstCalculator()">
-    <span>📊</span> GST Calculator
-</button>
-
-        <button class="btn-refresh" onclick="fetchFromGoogle3()">Edius Certificate</button>
-        <button class="btn-refresh" onclick="fetchFromGoogle()">Open Firebase</button>
-        <button class="btn-Open" onclick="fetchFromGoogle2()">Open Excel</button>
+        <button class="btn-gst" onclick="openGstCalculator()">📊 GST Calculator</button>
+        <button class="btn-refresh" style="border-color: #39ff14; background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), rgba(57, 255, 20, 0.3));" onclick="alert('Home Investment Section Opening...')">🏠 Home Invest</button>
+        <button class="btn-Open" onclick="window.open('https://manaspatra2025-maker.github.io/Adobe-Pro-Manager/', '_blank')">Adobe Cloud Status</button>        
+        <button class="btn-refresh" onclick="window.open('https://manaspatra2025-maker.github.io/edius-certificate-system/', '_blank')">Edius Certificate</button>
+        <button class="btn-refresh" onclick="window.open('https://console.firebase.google.com/', '_blank')">Open Firebase</button>
+        <button class="btn-Open" onclick="window.open('https://docs.google.com/spreadsheets/d/1-kKKjzoNYVyIHrTWT7tXF-0pZnd0y5_lOAbydtU0ito/edit?gid=0#gid=0', '_blank')">Open Excel</button>
         <button class="export-btn" onclick="exportToExcel()">Export Excel</button>
+        <div class="search-box" style="width: 300px; flex-shrink: 0; margin-left: 15px;">
+        <input type="text" id="searchInput" placeholder="Search product..." onkeyup="handleSearch()" style="width: 95%; margin-bottom: 0;">
+    </div>
+        <datalist id="productSuggestions"></datalist>
     </div>
 
     <div class="stats-grid">
