@@ -15,6 +15,102 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <style>
+        
+/* --- Admin Settings Modal Structure --- */
+#settingsModal .modal-box {
+    width: 550px; /* আপনার স্ক্রিনশটের মতো চওড়া লুক */
+    background: #0d1117;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.9);
+}
+
+.settings-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #f1f5f9;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ৩ নম্বর ইমেজের মতো ক্যাটাগরি কার্ড স্টাইল */
+.cat-list-pro {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.cat-item-pro {
+    background: #161b26; /* ডার্ক কার্ড ব্যাকগ্রাউন্ড */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 14px 22px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.cat-item-pro:hover {
+    background: #1c2331;
+    border-color: rgba(99, 102, 241, 0.5);
+    transform: translateX(5px);
+}
+
+.cat-name-pro {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+.cat-actions-pro {
+    display: flex;
+    gap: 15px;
+}
+
+.cat-actions-pro i {
+    cursor: pointer;
+    font-size: 18px;
+    color: #94a3b8;
+    transition: 0.2s;
+}
+
+.cat-btn-edit:hover { color: #6366f1; }
+.cat-btn-del:hover { color: #f43f5e; }
+
+/* ইনপুট এবং বাটন স্টাইল */
+.settings-section input {
+    background: #0a0d14;
+    border: 1px solid #2d3748;
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    width: 100%;
+}
+
+.btn-add {
+    background: #6366f1;
+    color: white;
+    font-weight: 800;
+    border-radius: 10px;
+    padding: 12px 20px;
+}
+
+/* স্ক্রলবার স্টাইল */
+.cat-list-pro::-webkit-scrollbar { width: 5px; }
+.cat-list-pro::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+
+
+
         :root {
             /* Ultra Premium Dark Palette */
             --bg-root: #020408;
@@ -245,7 +341,7 @@
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         .product-serial { 
-            font-size: 11px; color: #64748b; font-family: var(--font-mono); 
+            font-size: 11px; color: #94a3b8; font-family: var(--font-mono); 
             display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
@@ -336,7 +432,7 @@
 
 <div id="loader">
     <div class="spinner"></div>
-    <div style="margin-top:25px; font-size:13px; letter-spacing:3px; color:#94a3b8; font-weight: 700; text-transform: uppercase;">LOADING STUDIO LINE INDIA PC HUB...</div>
+    <div style="margin-top:20px; font-size:12px; letter-spacing:3px; color:#64748b; font-weight: 700; text-transform: uppercase;">LOADING STUDIO LINE INDIA PC HUB...</div>
 </div>
 
 <div id="toastBox"></div>
@@ -599,109 +695,48 @@
         }).join('');
     }
 
-    // --- Settings & Category Logic ---
-    function openSettings() {
-        document.getElementById('settingsModal').style.display = 'flex';
-        renderSettingsCats();
-        loadHistoryLogs();
-    }
-
+    // --- Settings & Logs ---
+    function openSettings() { document.getElementById('settingsModal').style.display='flex'; renderSettingsCats(); loadHistoryLogs(); }
     function renderSettingsCats() {
-        const div = document.getElementById('settingsCatList');
-        div.innerHTML = cats.map((c, i) => `
-            <div class="cat-item-pro">
-                <span class="cat-name-pro">${c}</span>
+        document.getElementById('settingsCatList').innerHTML = cats.map((c, i) => `
+            <div class="cat-item-pro"><span class="cat-name-pro">${c}</span>
                 <div class="cat-actions-pro">
                     <i class="ri-edit-line cat-btn-edit" onclick="editCategory(${i})"></i>
                     <i class="ri-delete-bin-line cat-btn-del" onclick="deleteCategory(${i})"></i>
                 </div>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
-
-    function editCategory(index) {
-        editingCategoryIndex = index;
-        document.getElementById('newCatName').value = cats[index];
-        document.getElementById('btnCatAction').innerText = "Update";
-        document.getElementById('newCatName').focus();
-    }
-
     function addNewCategory() {
-        const input = document.getElementById('newCatName');
-        const val = input.value.trim();
-        const btn = document.getElementById('btnCatAction');
-
+        const input = document.getElementById('newCatName'), val = input.value.trim();
         if(val) {
-            if(editingCategoryIndex > -1) {
-                cats[editingCategoryIndex] = val;
-                editingCategoryIndex = -1;
-                btn.innerText = "Add New";
-                toast("Category Updated!", "success");
-            } else {
-                if(!cats.includes(val)) {
-                    cats.push(val);
-                    toast("Category Added!", "success");
-                } else {
-                    toast("Category Exists!", "error");
-                    return;
-                }
-            }
-            db.ref('settings/categories').set(cats);
-            input.value = "";
+            if(editingCategoryIndex > -1) { cats[editingCategoryIndex] = val; editingCategoryIndex = -1; document.getElementById('btnCatAction').innerText="Add"; toast("Category Updated","success"); }
+            else if(!cats.includes(val)) { cats.push(val); toast("Category Added","success"); }
+            db.ref('settings/categories').set(cats); input.value = "";
         }
     }
-
-    function deleteCategory(index) {
-        if(confirm("Delete this category?")) {
-            cats.splice(index, 1);
-            db.ref('settings/categories').set(cats);
-            toast("Category Deleted", "success");
-        }
-    }
-
+    function editCategory(i) { editingCategoryIndex = i; document.getElementById('newCatName').value = cats[i]; document.getElementById('btnCatAction').innerText="Update"; }
+    function deleteCategory(i) { if(confirm("Delete Category?")) { cats.splice(i, 1); db.ref('settings/categories').set(cats); toast("Category Deleted","success"); }}
+    
     function loadHistoryLogs() {
         db.ref('history_log').limitToLast(100).once('value', (snap) => {
             const list = document.getElementById('backupLogList');
-            const summary = document.getElementById('logSummary');
-            if(!snap.exists()) { 
-                list.innerHTML = '<div style="text-align:center; color:#64748b;">No History Yet</div>'; 
-                summary.innerText = '0 Entries | Total: ₹0';
-                return; 
-            }
-            const logs = Object.values(snap.val());
+            const stats = document.getElementById('logStats');
+            if(!snap.exists()) { list.innerHTML = '<div style="text-align:center; color:#64748b; padding:20px;">No History Yet</div>'; stats.innerText='0 Entries | Total: ₹0'; return; }
             
-            // Calculate Totals
-            let totalValue = 0;
-            logs.forEach(l => totalValue += (parseFloat(l.buyPrice) || 0));
-            summary.innerText = `${logs.length} Entries Recorded | Total: ₹${fmt(totalValue)}`;
-
-            const grouped = {};
-            logs.forEach(log => {
-                const d = new Date(log.timestamp);
-                const key = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-                grouped[key] = (grouped[key] || 0) + 1;
-            });
-            let html = '';
-            for(const [month, count] of Object.entries(grouped)) {
-                html += `<div class="history-row">
-                    <span style="font-weight:600; color:#fff;">${month}</span> 
-                    <span style="color:var(--green); font-size:12px; background:rgba(16,185,129,0.1); padding:4px 8px; border-radius:4px;">${count} Entries Recorded</span>
-                </div>`;
-            }
-            list.innerHTML = html;
+            const logs = Object.values(snap.val()).reverse();
+            let total = 0;
+            logs.forEach(l => total += (parseFloat(l.buyPrice) || 0));
+            stats.innerText = `${logs.length} Entries | Total: ₹${fmt(total)}`;
+            
+            list.innerHTML = logs.map(l => `
+                <div class="history-row">
+                    <span style="color:white; font-weight:600;">${l.productName}</span>
+                    <span style="color:#94a3b8; font-size:12px;">${new Date(l.timestamp).toLocaleDateString()}</span>
+                </div>`).join('');
         });
     }
+    function resetHistory() { if(confirm("Clear all history logs?")) { db.ref('history_log').remove(); toast("History Cleared","success"); loadHistoryLogs(); } }
 
-    function resetHistory() {
-        if(confirm("⚠ WARNING: This will delete ALL permanent backup logs. Are you sure?")) {
-            db.ref('history_log').remove()
-            .then(() => {
-                toast("History Reset Successfully", "success");
-                loadHistoryLogs();
-            })
-            .catch(() => toast("Error Resetting History", "error"));
-        }
-    }
 
     async function addItem() {
         const name = val('nName');
@@ -749,32 +784,34 @@
 
         filtered.forEach(i => {
             tQty++; tVal += parseFloat(i.buy);
-            const profit = parseFloat(i.sell) - parseFloat(i.buy);
-            const img = i.img || 'https://via.placeholder.com/45/0b0e14/FFFFFF?text=IMG';
-            const serialDisplay = i.serial && i.serial !== "N/A" ? i.serial : "N/A";
-            
+            const sellPrice = parseFloat(i.sell) || 0;
+            const buyPrice = parseFloat(i.buy) || 0;
+            const profit = sellPrice - buyPrice; 
+
             tbody.innerHTML += `
             <tr>
                 <td style="padding-left:24px;">
                     <div class="cell-product">
-                        <img src="${img}" class="thumb" onclick="openPreview('${img}')">
-                        <div class="product-info">
-                            <div class="product-name" title="${i.name}">${i.name}</div>
-                            <div class="product-serial"><i class="ri-barcode-line"></i> SERIAL: ${serialDisplay}</div>
-                        </div>
+                        <img src="${i.img || 'https://via.placeholder.com/50/000000/FFFFFF?text=IMG'}" class="thumb" onclick="openPreview(this.src)">
+                        <div class="product-info"><div class="product-name">${i.name}</div><div class="product-serial"><i class="ri-barcode-line"></i> SERIAL: ${i.serial}</div></div>
                     </div>
                 </td>
                 <td><span class="badge badge-cat">${i.cat}</span></td>
-                <td style="color:#94a3b8; font-size:12px; font-weight:500;">${i.dealer}</td>
-                <td><span class="pip-tag" title="Click to Reveal">PI-${Math.round(i.buy)}</span></td>
-                <td class="price-main">₹${fmt(i.buy)}</td>
-                <td class="price-web">₹${fmt(i.onlinePrice || 0)}</td>
-                <td><span class="profit-pill">+ ₹${fmt(profit)}</span></td>
+                <td style="color:#94a3b8; font-size:12px; font-weight:600;">${i.dealer}</td>
+                
+                <td><span class="pip-tag" title="Reveal">PI-${Math.round(buyPrice)}</span></td>
+                
+                <td class="price-main">₹ ${fmt(sellPrice)}</td>
+                
+                <td class="price-web">₹ ${fmt(i.onlinePrice||0)}</td>
+                
+                <td><span class="np-tag">NP-${Math.round(profit)}</span></td>
+                
                 <td style="font-size:11px; color:#64748b;">${fmtDate(i.date)}</td>
                 <td style="text-align:right; padding-right:24px;">
                     <div style="display:flex; justify-content:flex-end;">
                         <button class="btn-icon" onclick="editItem('${i.id}')"><i class="ri-edit-line"></i></button>
-                        <button class="btn-icon btn-del" onclick="askDel('${i.id}')"><i class="ri-delete-bin-line"></i></button>
+                        <button class="btn-icon btn-del" onclick="askDel('${i.id}')"><i class="ri-close-line"></i></button>
                     </div>
                 </td>
             </tr>`;
