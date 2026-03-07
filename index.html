@@ -18,7 +18,14 @@
 
 
 
-
+html {
+    /* আধুনিক ব্রাউজারের জন্য */
+    zoom: 95%; 
+    
+    /* যদি zoom কাজ না করে তবে বিকল্প পদ্ধতি */
+    -moz-transform: scale(0.95); /* Firefox-এর জন্য */
+    -moz-transform-origin: 0 0;
+}
 
 
 /* --- Admin Settings Modal Structure --- */
@@ -1019,5 +1026,6 @@
 </script>
 </body>
 </html>
+
 
 
