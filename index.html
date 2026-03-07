@@ -18,13 +18,35 @@
 
 
 
+/* আপনার স্টাইল ট্যাগের শুরুতে এটি দিন */
 html {
-    /* আধুনিক ব্রাউজারের জন্য */
-    zoom: 95%; 
-    
-    /* যদি zoom কাজ না করে তবে বিকল্প পদ্ধতি */
-    -moz-transform: scale(0.95); /* Firefox-এর জন্য */
-    -moz-transform-origin: 0 0;
+    background-color: #000;
+    /* ব্রাউজার ১০০% থাকলেও এটি ৯০% জুমের লুক দেবে */
+    zoom: 90%; 
+    -moz-transform: scale(0.9);
+    -moz-transform-origin: top center;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    /* জুম কমানোর কারণে যে খালি জায়গা তৈরি হয় তা পূরণ করতে */
+    min-height: 111.12vh; 
+    width: 100%;
+    background: #000;
+    overflow-x: hidden;
+}
+
+.container {
+    /* কন্টেইনারটি স্ক্রিনের একদম মাঝখানে রাখার জন্য */
+    margin: 0 auto;
+    width: 100%;
+    max-width: 480px; 
+}
+
+/* স্লাইডারের এনিমেশন স্পিড জুম অনুযায়ী অ্যাডজাস্টমেন্ট */
+.slider-track {
+    animation: scroll 40s linear infinite;
 }
 
 
@@ -1026,6 +1048,7 @@ html {
 </script>
 </body>
 </html>
+
 
 
 
